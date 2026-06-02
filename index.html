@@ -1,0 +1,1392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prob Captain">
+<meta name="theme-color" content="#061633">
+<title>Probability Captain</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<style>
+/* ============================================================
+   PROBABILITY CAPTAIN — nautical "sonar command deck" theme
+   Offline-safe: uses ui-rounded (SF Pro Rounded on iPad), no
+   web fonts, no external assets.
+   ============================================================ */
+
+:root {
+  --abyss:   #061633;
+  --deep:    #0a2148;
+  --sea:     #0f3268;
+  --panel:   rgba(18, 52, 104, 0.55);
+  --panel-2: rgba(10, 33, 72, 0.72);
+  --glass-bd: rgba(150, 200, 255, 0.18);
+  --foam:    #eaf4ff;
+  --foam-dim:#a9c4e6;
+  --ink:     #06122b;
+  --sun:     #ffc24a;
+  --sun-2:   #ff9a3c;
+  --coral:   #ff6363;
+  --teal:    #2ad0c0;
+  --ping:    #74e7ff;
+  --good:    #5fe3a1;
+  --r-lg: 22px;
+  --r-md: 16px;
+  --r-sm: 9px;
+  --lbl: 22px;
+  --shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+  --maxw: 760px;
+  font-family: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold",
+               "Avenir Next", "Avenir", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { margin: 0; padding: 0; min-height: 100%; }
+
+body {
+  color: var(--foam);
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(116, 231, 255, 0.18), transparent 55%),
+    radial-gradient(90% 60% at 85% 8%, rgba(255, 194, 74, 0.10), transparent 50%),
+    linear-gradient(180deg, var(--deep) 0%, var(--abyss) 60%, #03102a 100%)
+    fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* faint nautical-chart grid + drifting sonar sweep behind everything */
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(120, 180, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 180, 255, 0.05) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: radial-gradient(130% 100% at 50% 0%, #000 55%, transparent 100%);
+  -webkit-mask-image: radial-gradient(130% 100% at 50% 0%, #000 55%, transparent 100%);
+}
+body::after {
+  content: "";
+  position: fixed; left: 50%; top: -25vh; z-index: 0; pointer-events: none;
+  width: 150vmax; height: 150vmax; transform: translateX(-50%);
+  background: conic-gradient(from 0deg,
+    rgba(116, 231, 255, 0.09), transparent 18%, transparent 100%);
+  border-radius: 50%;
+  opacity: 0.5;
+  animation: sweep 14s linear infinite;
+}
+@keyframes sweep { to { transform: translateX(-50%) rotate(360deg); } }
+
+#app {
+  position: relative; z-index: 1;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 22px 18px 64px;
+}
+
+/* ---------------- load animation ---------------- */
+.fade { animation: fade 0.5s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ============================================================
+   HERO / HOME
+   ============================================================ */
+.hero { text-align: center; padding: 18px 0 8px; }
+.logo {
+  font-size: 60px; line-height: 1;
+  filter: drop-shadow(0 0 22px rgba(116, 231, 255, 0.55));
+  animation: bob 4.5s ease-in-out infinite;
+}
+@keyframes bob { 0%,100%{ transform: translateY(0) rotate(-4deg);} 50%{ transform: translateY(-8px) rotate(4deg);} }
+.hero h1 {
+  margin: 10px 0 2px;
+  font-size: clamp(30px, 7vw, 46px);
+  font-weight: 800; letter-spacing: -0.5px;
+  background: linear-gradient(180deg, #fff, var(--ping));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 2px 30px rgba(116, 231, 255, 0.25);
+}
+.tag { margin: 0; color: var(--foam-dim); font-size: clamp(14px, 3.4vw, 18px); font-weight: 600; }
+
+.cards { display: flex; flex-direction: column; gap: 12px; margin-top: 22px; }
+
+.mcard {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; text-align: left;
+  padding: 15px 16px;
+  border: 1px solid var(--glass-bd);
+  border-radius: var(--r-lg);
+  background: var(--panel);
+  backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+  color: var(--foam);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  animation: fade .5s both;
+}
+.cards .mcard:nth-child(1){ animation-delay:.03s } .cards .mcard:nth-child(2){ animation-delay:.07s }
+.cards .mcard:nth-child(3){ animation-delay:.11s } .cards .mcard:nth-child(4){ animation-delay:.15s }
+.cards .mcard:nth-child(5){ animation-delay:.19s } .cards .mcard:nth-child(6){ animation-delay:.23s }
+.cards .mcard:nth-child(7){ animation-delay:.27s }
+.mcard:hover { transform: translateY(-3px); border-color: rgba(116,231,255,.55); box-shadow: 0 22px 46px -16px rgba(0,0,0,.7), 0 0 0 1px rgba(116,231,255,.25); }
+.mcard:active { transform: translateY(0) scale(.992); }
+.mico {
+  flex: 0 0 auto; width: 52px; height: 52px;
+  display: grid; place-items: center; font-size: 28px;
+  border-radius: 14px;
+  background: radial-gradient(circle at 30% 25%, rgba(116,231,255,.22), rgba(10,33,72,.6));
+  box-shadow: inset 0 0 0 1px rgba(150,200,255,.18);
+}
+.mtxt { flex: 1 1 auto; min-width: 0; }
+.mname { font-size: clamp(16px, 4vw, 19px); font-weight: 800; }
+.msub  { font-size: clamp(12px, 3.1vw, 14px); color: var(--foam-dim); font-weight: 600; margin-top: 1px; }
+.go { flex: 0 0 auto; font-size: 16px; color: var(--ping); opacity: .85; }
+
+.mcard.play {
+  background: linear-gradient(110deg, rgba(255,154,60,.30), rgba(255,99,99,.22)), var(--panel-2);
+  border-color: rgba(255,194,74,.5);
+}
+.mcard.play .mico { background: radial-gradient(circle at 30% 25%, rgba(255,194,74,.5), rgba(255,99,99,.35)); }
+.mcard.play .go { color: var(--sun); }
+
+.grownlink {
+  display: block; margin: 20px auto 0; padding: 9px 16px;
+  background: transparent; color: var(--foam-dim);
+  border: 1px dashed rgba(150,200,255,.3); border-radius: 999px;
+  font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.grownlink:hover { color: var(--foam); border-color: rgba(150,200,255,.6); }
+
+.grownbox {
+  margin: 14px auto 0; max-width: 640px;
+  padding: 16px 20px;
+  background: var(--panel-2); border: 1px solid var(--glass-bd);
+  border-radius: var(--r-md); box-shadow: var(--shadow);
+  font-size: 14px; line-height: 1.5; color: #d8e6fa;
+}
+.grownbox p { margin: 0 0 10px; }
+.grownbox ul { margin: 0; padding-left: 20px; }
+.grownbox li { margin: 7px 0; }
+.grownbox b { color: #fff; }
+
+/* ============================================================
+   TOP BAR (inside missions / play)
+   ============================================================ */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 14px;
+}
+.home {
+  background: var(--panel); color: var(--foam);
+  border: 1px solid var(--glass-bd); border-radius: 999px;
+  padding: 8px 15px; font: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: transform .15s, border-color .2s;
+}
+.home:hover { border-color: rgba(116,231,255,.55); }
+.home:active { transform: scale(.95); }
+.title-sm { font-size: 14px; font-weight: 800; color: var(--foam-dim); text-align: center; flex: 1 1 auto; }
+
+.dots { display: flex; gap: 6px; flex: 0 0 auto; }
+.dot-i {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: rgba(150,200,255,.25); box-shadow: inset 0 0 0 1px rgba(150,200,255,.25);
+  transition: background .25s, transform .25s;
+}
+.dot-i.on { background: var(--sun); box-shadow: 0 0 10px rgba(255,194,74,.8); transform: scale(1.15); }
+
+/* ============================================================
+   STAGE LAYOUT
+   ============================================================ */
+.stagewrap { display: flex; flex-direction: column; gap: 16px; }
+.boardpanel {
+  align-self: center; width: 100%;
+  display: flex; justify-content: center;
+  padding: 16px;
+  background: radial-gradient(120% 120% at 50% 0%, rgba(116,231,255,.08), transparent 60%), var(--panel-2);
+  border: 1px solid var(--glass-bd); border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+}
+
+/* guide / mascot speech */
+.guide { display: flex; align-items: flex-start; gap: 12px; }
+.ava {
+  flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 26px;
+  background: radial-gradient(circle at 32% 28%, rgba(116,231,255,.35), rgba(10,33,72,.7));
+  box-shadow: inset 0 0 0 1px rgba(150,200,255,.25), 0 0 18px rgba(116,231,255,.25);
+}
+.bubble {
+  position: relative; flex: 1 1 auto;
+  background: var(--panel); border: 1px solid var(--glass-bd);
+  border-radius: 16px; padding: 13px 16px;
+  font-size: clamp(15px, 3.7vw, 17px); line-height: 1.46; font-weight: 600;
+  box-shadow: var(--shadow); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.bubble::before {
+  content: ""; position: absolute; left: -7px; top: 16px;
+  width: 14px; height: 14px; transform: rotate(45deg);
+  background: var(--panel); border-left: 1px solid var(--glass-bd); border-bottom: 1px solid var(--glass-bd);
+}
+.bubble b { color: #fff; }
+.bubble .small, .small { font-size: 13px; color: var(--foam-dim); font-weight: 600; }
+
+/* controls row */
+.controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+.btn {
+  font: inherit; font-weight: 800; cursor: pointer;
+  border-radius: 14px; padding: 13px 20px; font-size: 16px;
+  border: none; color: var(--ink);
+  background: linear-gradient(180deg, var(--sun), var(--sun-2));
+  box-shadow: 0 10px 22px -8px rgba(255,154,60,.8), inset 0 1px 0 rgba(255,255,255,.4);
+  transition: transform .12s ease, box-shadow .2s ease, filter .2s;
+}
+.btn:hover { filter: brightness(1.05); }
+.btn:active { transform: translateY(2px); box-shadow: 0 5px 12px -8px rgba(255,154,60,.8), inset 0 1px 0 rgba(255,255,255,.3); }
+.btn.big { padding: 15px 24px; font-size: 17px; }
+.btn.ghost {
+  background: var(--panel); color: var(--foam);
+  border: 1px solid var(--glass-bd);
+  box-shadow: none; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.btn.ghost:hover { border-color: rgba(116,231,255,.55); filter: none; }
+
+.hintline {
+  font-size: 14px; color: var(--foam-dim); font-weight: 600; text-align: center;
+  padding: 4px 8px; max-width: 460px;
+}
+
+/* ============================================================
+   THE BOARD (10x10)
+   ============================================================ */
+.board {
+  display: grid;
+  grid-template-columns: var(--lbl) repeat(10, 1fr);
+  gap: 3px;
+  width: min(86vw, 520px);
+}
+.corner { aspect-ratio: 1; }
+.lbl {
+  display: grid; place-items: center;
+  font-size: clamp(9px, 2.1vw, 12px); font-weight: 800; color: var(--foam-dim);
+  font-variant-numeric: tabular-nums;
+}
+.cell {
+  position: relative; aspect-ratio: 1; width: 100%;
+  border: none; padding: 0; margin: 0; cursor: default;
+  border-radius: var(--r-sm);
+  background: rgba(96, 150, 220, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(120, 175, 255, 0.14);
+  display: grid; place-items: center;
+  font-size: clamp(12px, 3vw, 19px); line-height: 1;
+  color: #fff;
+  transition: transform .1s ease, box-shadow .2s ease, background .2s ease;
+  overflow: hidden;
+}
+.cell.unknown { cursor: pointer; }
+.cell.unknown:hover { background: rgba(116, 231, 255, 0.22); box-shadow: inset 0 0 0 1px rgba(116,231,255,.5); }
+.cell.unknown:active { transform: scale(.92); }
+
+.cell.dark { background: rgba(8, 24, 56, 0.55); box-shadow: inset 0 0 0 1px rgba(120,175,255,.12); }
+
+.cell .num {
+  font-size: clamp(9px, 2.3vw, 14px); font-weight: 800;
+  font-variant-numeric: tabular-nums; color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.65), 0 0 2px rgba(0,0,0,.5);
+  pointer-events: none;
+}
+.cell.zero {
+  background: rgba(6, 16, 38, 0.66) !important;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(120,160,220,.12) 4px, rgba(120,160,220,.12) 6px) !important;
+}
+.cell.zero .num { color: rgba(180,205,235,.65); text-shadow: none; }
+
+.cell.hit  { background: radial-gradient(circle at 50% 45%, #ff8a6a, #e0353a); box-shadow: inset 0 0 0 1px rgba(255,180,160,.6), 0 0 14px rgba(255,80,80,.5); }
+.cell.sunk { background: radial-gradient(circle at 50% 40%, #4a5878, #1b2440); box-shadow: inset 0 0 0 1px rgba(120,140,180,.4); }
+.cell.miss { background: rgba(10, 28, 60, 0.5); }
+.cell.miss .dot, .scell.miss .dot {
+  width: 26%; height: 26%; border-radius: 50%;
+  background: rgba(150, 190, 240, 0.55); box-shadow: inset 0 0 4px rgba(0,0,0,.4);
+}
+.cell.ship { background: linear-gradient(180deg, rgba(95,227,161,.5), rgba(42,208,192,.4)); box-shadow: inset 0 0 0 1px rgba(120,255,210,.5); }
+
+.cell.hl { box-shadow: 0 0 0 3px var(--ping), 0 0 14px rgba(116,231,255,.7); z-index: 2; }
+
+/* ============================================================
+   1-D STRIP (missions 1 & 5)
+   ============================================================ */
+.strip { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.scol { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.scell {
+  position: relative; width: clamp(40px, 12vw, 64px); aspect-ratio: 1;
+  border: none; border-radius: 14px; cursor: default;
+  background: rgba(96, 150, 220, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(120,175,255,.18);
+  display: grid; place-items: center;
+  font-size: clamp(16px, 4.5vw, 24px); font-weight: 800; color: var(--foam);
+  transition: transform .1s ease, box-shadow .2s, background .2s;
+}
+.scell.unknown { cursor: pointer; }
+.scell.unknown:hover { background: rgba(116,231,255,.24); box-shadow: inset 0 0 0 1px rgba(116,231,255,.5); }
+.scell.unknown:active { transform: scale(.93); }
+.scell.miss { background: rgba(10, 28, 60, 0.5); color: transparent; }
+.scell.hit  { background: radial-gradient(circle at 50% 45%, #ff8a6a, #e0353a); box-shadow: 0 0 14px rgba(255,80,80,.5); }
+.scell.ship { background: linear-gradient(180deg, rgba(95,227,161,.5), rgba(42,208,192,.4)); box-shadow: inset 0 0 0 1px rgba(120,255,210,.5); }
+.scell.hl   { box-shadow: 0 0 0 3px var(--ping), 0 0 16px rgba(116,231,255,.7); }
+.ways { font-size: clamp(11px, 3vw, 14px); font-weight: 800; color: var(--sun); font-variant-numeric: tabular-nums; }
+
+/* ghost-ship placement list (mission 1) */
+.ghostships { display: flex; flex-direction: column; gap: 7px; align-items: center; width: 100%; }
+.ghostrow { display: flex; align-items: center; gap: 5px; }
+.glabel { font-size: 12px; font-weight: 800; color: var(--foam-dim); width: 54px; text-align: right; margin-right: 4px; }
+.gcell { width: 18px; height: 18px; border-radius: 5px; background: rgba(96,150,220,.16); box-shadow: inset 0 0 0 1px rgba(120,175,255,.16); }
+.gcell.ghost { background: linear-gradient(180deg, var(--sun), var(--sun-2)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.4); }
+
+/* ============================================================
+   100-GAMES SIMULATION (mission 5)
+   ============================================================ */
+.simwrap { width: min(92%, 460px); display: flex; flex-direction: column; gap: 18px; padding: 6px 0; }
+.simrow { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 12px; }
+.simlabel { grid-column: 1 / -1; font-size: 14px; font-weight: 800; color: var(--foam); }
+.bartrack {
+  grid-column: 1 / 2; height: 26px; border-radius: 999px;
+  background: rgba(8, 24, 56, 0.6); box-shadow: inset 0 0 0 1px rgba(120,175,255,.16);
+  overflow: hidden;
+}
+.bar { height: 100%; width: 0; border-radius: 999px; transition: width .05s linear; }
+.bar.hot  { background: linear-gradient(90deg, var(--sun), var(--coral)); box-shadow: 0 0 14px rgba(255,140,80,.5); }
+.bar.cold { background: linear-gradient(90deg, #2f6fae, #2ad0c0); }
+.simcount { grid-column: 2 / 3; font-size: 22px; font-weight: 800; color: var(--foam); font-variant-numeric: tabular-nums; min-width: 2.4ch; text-align: right; }
+.simfoot { font-size: 14.5px; line-height: 1.5; font-weight: 600; color: #d8e6fa; padding-top: 2px; }
+.simfoot b { color: #fff; }
+
+/* ============================================================
+   FREE PLAY
+   ============================================================ */
+.playbar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.playbar .btn { padding: 11px 15px; font-size: 14px; }
+.statline { font-size: 14px; font-weight: 600; color: var(--foam-dim); text-align: center; max-width: 520px; }
+.statline b { color: var(--sun); }
+.fleetline { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+.shipchip {
+  font-size: 12.5px; font-weight: 700; color: var(--foam);
+  padding: 6px 11px; border-radius: 999px;
+  background: var(--panel); border: 1px solid var(--glass-bd);
+}
+.shipchip.sunk { color: var(--foam-dim); text-decoration: line-through; opacity: .6; background: rgba(10,28,60,.4); }
+
+@media (max-width: 420px) {
+  #app { padding: 16px 12px 56px; }
+  .board { width: 92vw; gap: 2px; }
+  .ava { display: none; }
+  .bubble::before { display: none; }
+  .home { padding: 7px 12px; font-size: 13px; }
+  .title-sm { display: none; }
+}
+
+/* ============================================================
+   SHIP ART + visual upgrades (v2)
+   ============================================================ */
+.shipart { width: 100%; height: 100%; display: block; overflow: visible; }
+
+/* Mission 1 — animated submarine demo */
+.m1demo {
+  position: relative; width: min(92vw, 460px); margin: 2px auto;
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  border-radius: 16px; overflow: hidden;
+  background: rgba(8,24,56,.5);
+  box-shadow: inset 0 0 0 1px rgba(120,175,255,.18);
+}
+.m1cell {
+  aspect-ratio: 1; position: relative;
+  display: flex; align-items: flex-end; justify-content: center;
+  border-right: 1px solid rgba(120,175,255,.12);
+}
+.m1cell:last-child { border-right: none; }
+.m1letter { position: absolute; top: 5px; left: 0; right: 0; text-align: center; font-size: 12px; font-weight: 800; color: var(--foam-dim); }
+.m1tally {
+  margin-bottom: 7px; min-width: 23px; height: 23px; padding: 0 5px;
+  display: grid; place-items: center;
+  font-size: 13.5px; font-weight: 800; color: var(--ink);
+  background: linear-gradient(180deg, var(--sun), var(--sun-2));
+  border-radius: 999px; box-shadow: 0 4px 10px -4px rgba(255,154,60,.8);
+  transform: scale(0); transition: transform .28s cubic-bezier(.2,1.4,.4,1);
+}
+.m1tally.show { transform: scale(1); }
+.m1tally.bump { animation: bump .34s ease; }
+@keyframes bump { 0%{transform:scale(1);} 45%{transform:scale(1.45);} 100%{transform:scale(1);} }
+.m1sub {
+  position: absolute; top: 9%; height: 42%; left: 0; width: 50%;
+  display: flex; align-items: center; padding: 0 5px; pointer-events: none;
+  filter: drop-shadow(0 7px 10px rgba(0,0,0,.5));
+  transition: left .6s cubic-bezier(.45,.05,.3,1);
+}
+.m1foot { text-align: center; font-size: 14px; font-weight: 700; color: var(--foam-dim); min-height: 20px; margin-top: 2px; }
+
+/* fleet roster silhouettes */
+.shipchip { display: inline-flex; align-items: center; gap: 5px; }
+.shipchip .sil { display: inline-block; width: 50px; height: 16px; }
+.shipchip .sil .shipart { height: 16px; }
+
+/* Mission 3 — shape lesson */
+.shapeshow { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; padding: 11px 13px; background: rgba(8,24,56,.45); border-radius: 13px; box-shadow: inset 0 0 0 1px rgba(120,175,255,.16); }
+.shaperow { display: flex; align-items: center; gap: 11px; }
+.shaperow .lab { font-size: 12.5px; font-weight: 800; width: 92px; color: var(--foam); flex: 0 0 auto; }
+.shaperow .sil { flex: 1 1 auto; max-width: 220px; height: 28px; }
+.shaperow .sil .shipart { height: 28px; }
+.verdict { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 2px; }
+.vcell { display: flex; align-items: center; gap: 8px; }
+.minigrid { display: grid; gap: 2px; }
+.minigrid.line { grid-template-columns: repeat(3, 17px); grid-auto-rows: 17px; }
+.minigrid.diag { grid-template-columns: repeat(3, 17px); grid-auto-rows: 17px; }
+.minigrid .mg { width: 17px; height: 17px; border-radius: 4px; background: rgba(96,150,220,.16); box-shadow: inset 0 0 0 1px rgba(120,175,255,.16); }
+.minigrid .mg.on  { background: linear-gradient(180deg, var(--good), var(--teal)); box-shadow: inset 0 0 0 1px rgba(150,255,210,.6); }
+.minigrid .mg.bad { background: rgba(255,99,99,.32); box-shadow: inset 0 0 0 1px rgba(255,120,120,.55); }
+.vtag { font-size: 13.5px; font-weight: 800; }
+.vtag.ok { color: var(--good); } .vtag.no { color: var(--coral); }
+
+/* grid reveal as coloured hulls */
+.cell.hull { box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
+.cell .gly { width: 82%; height: 82%; display: grid; place-items: center; pointer-events: none; }
+.cell .gly .shipart { height: 86%; }
+
+/* ============================================================
+   v3 — footprints + shape-aware ranking
+   ============================================================ */
+.fp { width: 100%; height: 100%; display: block; }
+.fpbox { display: inline-flex; align-items: center; height: 26px; vertical-align: middle; }
+.fpbox .fp { height: 26px; width: auto; }
+.shipchip { display: inline-flex; align-items: center; gap: 6px; }
+.shipchip .fpbox { height: 20px; }
+.shipchip .fpbox .fp { height: 20px; }
+.shaperow .fpbox { height: 30px; }
+.shaperow .fpbox .fp { height: 30px; }
+.shaperow .note { font-size: 12px; color: var(--foam-dim); }
+.rank { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.rankrow { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--foam); }
+.rk { width: 15px; height: 15px; border-radius: 4px; flex: 0 0 auto; box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+.rk.hot  { background: linear-gradient(180deg, #ff7a3c, #ff5a2c); }
+.rk.warm { background: linear-gradient(180deg, #ffd23c, #ffb02c); }
+.rk.cool { background: rgba(96,150,220,.5); }
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}</script>
+<script>
+/* ============================================================
+   PROBABILITY CAPTAIN — a Battleship probability adventure
+   Vanilla JS, no dependencies, works offline.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var N = 10;
+  var COLS = ['1','2','3','4','5','6','7','8','9','10'];
+  var ROWS = ['A','B','C','D','E','F','G','H','I','J'];
+
+  // The real fleet (colors ignored): 4 linear ships + the T submarine + the S carrier.
+  // `cells` = relative [row,col] footprint in one base orientation.
+  var FLEET = [
+    { key: 'carrier', name: 'Aircraft Carrier', cells: [[0,1],[0,2],[0,3],[1,0],[1,1],[1,2]], icon: '🛳️' }, // S, 6
+    { key: 'sub',     name: 'Submarine',        cells: [[0,0],[0,1],[0,2],[1,1]],             icon: '🔱' }, // T, 4
+    { key: 'linear5', name: 'Destroyer',        cells: [[0,0],[0,1],[0,2],[0,3],[0,4]],       icon: '🚢' }, // 5
+    { key: 'battle',  name: 'Battleship',       cells: [[0,0],[0,1],[0,2],[0,3]],             icon: '⚓' }, // 4
+    { key: 'cruiser', name: 'Cruiser',          cells: [[0,0],[0,1],[0,2]],                   icon: '⛴️' }, // 3
+    { key: 'patrol',  name: 'Patrol Boat',      cells: [[0,0],[0,1]],                         icon: '🛥️' }  // 2
+  ];
+
+  // -------------------- math helpers --------------------
+  function mkGrid() {
+    var g = [];
+    for (var r = 0; r < N; r++) { g.push(new Array(N).fill('unknown')); }
+    return g;
+  }
+  function cloneGrid(g) { return g.map(function (row) { return row.slice(); }); }
+  function setCells(g, list, st) { list.forEach(function (p) { g[p[0]][p[1]] = st; }); return g; }
+  function K(r, c) { return r + ',' + c; }
+
+  // ---- polyomino orientation helpers (rotation only; ships rotate, don't mirror) ----
+  function normCells(cells) {
+    var mr = Infinity, mc = Infinity;
+    cells.forEach(function (p) { if (p[0] < mr) mr = p[0]; if (p[1] < mc) mc = p[1]; });
+    return cells.map(function (p) { return [p[0] - mr, p[1] - mc]; })
+                .sort(function (a, b) { return (a[0] - b[0]) || (a[1] - b[1]); });
+  }
+  function rot90(cells) { return cells.map(function (p) { return [p[1], -p[0]]; }); }
+  function orientations(cells) {
+    var out = [], seen = {}, cur = cells, i;
+    for (i = 0; i < 4; i++) {
+      var n = normCells(cur);
+      var key = n.map(function (p) { return p[0] + '.' + p[1]; }).join('|');
+      if (!seen[key]) { seen[key] = 1; out.push(n); }
+      cur = rot90(cur);
+    }
+    return out;
+  }
+  function shipExtent(cells) { var mr = 0, mc = 0; cells.forEach(function (p) { if (p[0] > mr) mr = p[0]; if (p[1] > mc) mc = p[1]; }); return [mr, mc]; }
+  function shipLen(ship) { return ship.cells.length; }
+
+  // 2-D probability density heatmap over ARBITRARY ship shapes. With any 'hit'
+  // on the board we switch to "target mode": only count placements explaining a hit.
+  function computeHeat(grid, ships) {
+    var counts = [], r, c;
+    for (r = 0; r < N; r++) counts.push(new Array(N).fill(0));
+    var hasHit = false;
+    for (r = 0; r < N; r++) for (c = 0; c < N; c++) if (grid[r][c] === 'hit') hasHit = true;
+    // weight a placement by how many existing hits it explains (1,3,6,10,15);
+    // with no hits this is +1 per cell = plain "number of ways".
+    function wt(h) { return h * (h + 1) / 2; }
+
+    ships.forEach(function (ship) {
+      var oris = ship.orient || (ship.orient = orientations(ship.cells));
+      oris.forEach(function (cells) {
+        var ext = shipExtent(cells), maxr = ext[0], maxc = ext[1], ar, ac, j;
+        for (ar = 0; ar + maxr < N; ar++) {
+          for (ac = 0; ac + maxc < N; ac++) {
+            var ok = true, hc = 0, abs = [];
+            for (j = 0; j < cells.length; j++) {
+              var rr = ar + cells[j][0], cc = ac + cells[j][1], s = grid[rr][cc];
+              if (s === 'miss' || s === 'sunk') { ok = false; break; }
+              if (s === 'hit') hc++;
+              abs.push(rr); abs.push(cc); abs.push(s === 'unknown' ? 1 : 0);
+            }
+            if (!ok) continue;
+            if (hasHit && hc === 0) continue;
+            var w = hasHit ? wt(hc) : 1;
+            for (j = 0; j < abs.length; j += 3) if (abs[j + 2]) counts[abs[j]][abs[j + 1]] += w;
+          }
+        }
+      });
+    });
+
+    var max = 0;
+    for (r = 0; r < N; r++) for (c = 0; c < N; c++) if (counts[r][c] > max) max = counts[r][c];
+    return { counts: counts, max: max, target: hasHit };
+  }
+
+  // 1-D coverage counts for a strip of `len` cells hiding a ship of `shipLen`.
+  function coverage1D(len, shipLen) {
+    var counts = new Array(len).fill(0), positions = [];
+    for (var s = 0; s + shipLen <= len; s++) {
+      var cells = [];
+      for (var k = 0; k < shipLen; k++) { counts[s + k]++; cells.push(s + k); }
+      positions.push(cells);
+    }
+    return { counts: counts, positions: positions };
+  }
+
+  // heat colour ramp (cool -> hot)
+  function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+  function heatColor(t) {
+    if (t <= 0) return null;
+    var stops = [
+      [0.00, [34, 52, 102]], [0.20, [31, 96, 165]], [0.45, [20, 158, 150]],
+      [0.65, [156, 186, 58]], [0.82, [238, 153, 46]], [1.00, [224, 52, 52]]
+    ];
+    var i = 0;
+    while (i < stops.length - 1 && t > stops[i + 1][0]) i++;
+    var lo = stops[i], hi = stops[Math.min(i + 1, stops.length - 1)];
+    var f = (hi[0] === lo[0]) ? 0 : (t - lo[0]) / (hi[0] - lo[0]);
+    return 'rgb(' + lerp(lo[1][0], hi[1][0], f) + ',' + lerp(lo[1][1], hi[1][1], f) + ',' + lerp(lo[1][2], hi[1][2], f) + ')';
+  }
+
+  // -------------------- ship art (distinct, recognisable silhouettes) --------
+  // Footprints are straight 1xL lines (standard rules) — only the LOOK differs,
+  // so a child recognises the same vessels from the iPad game and learns that
+  // even the carrier and submarine lie perfectly straight, never diagonal.
+  var SHIP_COLOR = {
+    carrier: { hull: '#e8743b', deck: '#c95a27', trim: '#ffe0c4', tower: '#5a2f18' },
+    battle:  { hull: '#f2c14e', deck: '#cf9e2f', trim: '#fff3cf', tower: '#5c4710' },
+    cruiser: { hull: '#4d6a96', deck: '#33496b', trim: '#cfe0f7', tower: '#1d2b44' },
+    linear5: { hull: '#3fb6a8', deck: '#2c8b80', trim: '#d4f3ee', tower: '#164640' },
+    sub:     { hull: '#93a8bb', deck: '#6c8294', trim: '#e6eef5', tower: '#3a4a59' },
+    patrol:  { hull: '#8a79d6', deck: '#6d5bc0', trim: '#e8e2ff', tower: '#2f2563' }
+  };
+
+  // wide silhouette spanning `len` cells; viewBox (len*40) x 40, lying flat.
+  function shipSilhouette(type, len) {
+    var W = len * 40, c = SHIP_COLOR[type] || SHIP_COLOR.cruiser, i;
+    var s = '<svg class="shipart" viewBox="0 0 ' + W + ' 40" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">';
+    if (type === 'sub') {
+      s += '<rect x="3" y="13.5" width="' + (W - 6) + '" height="14" rx="7" fill="' + c.hull + '" stroke="' + c.tower + '" stroke-width="1.1"/>';
+      s += '<rect x="' + (W / 2 - 8) + '" y="5.5" width="16" height="9" rx="3" fill="' + c.tower + '"/>';
+      s += '<line x1="' + (W / 2 + 4) + '" y1="5.5" x2="' + (W / 2 + 4) + '" y2="1" stroke="' + c.tower + '" stroke-width="1.6"/>';
+      for (i = 0; i < len; i++) s += '<circle cx="' + (i * 40 + 20) + '" cy="20.5" r="2" fill="' + c.trim + '"/>';
+    } else if (type === 'carrier') {
+      s += '<rect x="2" y="11" width="' + (W - 4) + '" height="19" rx="5" fill="' + c.hull + '" stroke="' + c.tower + '" stroke-width="1.1"/>';
+      s += '<line x1="9" y1="20.5" x2="' + (W - 9) + '" y2="20.5" stroke="' + c.trim + '" stroke-width="2" stroke-dasharray="7 5"/>';
+      s += '<rect x="' + (W * 0.66) + '" y="3.5" width="15" height="8.5" rx="2" fill="' + c.tower + '"/>';
+      s += '<line x1="' + (W * 0.66 + 13) + '" y1="3.5" x2="' + (W * 0.66 + 13) + '" y2="0.5" stroke="' + c.tower + '" stroke-width="1.4"/>';
+      s += '<path d="M20 17 l10 3.5 -10 3.5 3.5-3.5z" fill="' + c.trim + '"/>';
+    } else {
+      var bow = W - 2;
+      s += '<path d="M5 13.5 H' + (bow - 13) + ' Q' + bow + ' 13.5 ' + bow + ' 20.5 Q' + bow + ' 27.5 ' + (bow - 13) + ' 27.5 H5 Q2 27.5 2 20.5 Q2 13.5 5 13.5 Z" fill="' + c.hull + '" stroke="' + c.tower + '" stroke-width="1.1"/>';
+      s += '<rect x="7" y="16.5" width="' + (W - 24) + '" height="2.6" rx="1.3" fill="' + c.deck + '"/>';
+      s += '<rect x="' + (W * 0.4) + '" y="6.5" width="12" height="10" rx="2" fill="' + c.tower + '"/>';
+      s += '<line x1="' + (W * 0.4 + 10) + '" y1="6.5" x2="' + (W * 0.4 + 10) + '" y2="1.5" stroke="' + c.tower + '" stroke-width="1.4"/>';
+      var turrets = (type === 'battle') ? [0.17, 0.73] : (type === 'cruiser' ? [0.72] : []);
+      for (i = 0; i < turrets.length; i++) {
+        var tx = W * turrets[i];
+        s += '<circle cx="' + tx + '" cy="20.5" r="4.2" fill="' + c.tower + '"/>';
+        s += '<rect x="' + tx + '" y="19.4" width="9" height="2.2" rx="1" fill="' + c.tower + '"/>';
+      }
+      if (type === 'patrol') s += '<rect x="' + (W * 0.32) + '" y="11.5" width="9" height="5" rx="2" fill="' + c.deck + '"/>';
+    }
+    s += '</svg>';
+    return s;
+  }
+  function silBox(type, len, cls) { return '<span class="' + (cls || 'sil') + '">' + shipSilhouette(type, len) + '</span>'; }
+
+  // tiny centred glyph for a ship's middle cell in grid reveals
+  function shipGlyph(type) {
+    var n = (type === 'patrol') ? 2 : (type === 'carrier' ? 3 : (type === 'battle' ? 3 : 2));
+    return '<span class="gly">' + shipSilhouette(type, n) + '</span>';
+  }
+
+  // top-down FOOTPRINT of any ship shape (the cells it occupies), for the roster
+  // and the shape lessons — this is what actually teaches the T and S shapes.
+  function footprintSVG(cells, type) {
+    var c = SHIP_COLOR[type] || SHIP_COLOR.cruiser, U = 22;
+    var ext = shipExtent(normCells(cells)), W = (ext[1] + 1) * U, H = (ext[0] + 1) * U;
+    var nc = normCells(cells);
+    var s = '<svg class="fp" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">';
+    nc.forEach(function (p) {
+      var x = p[1] * U + 2, y = p[0] * U + 2;
+      s += '<rect x="' + x + '" y="' + y + '" width="' + (U - 4) + '" height="' + (U - 4) + '" rx="4" fill="' + c.hull + '" stroke="' + c.tower + '" stroke-width="1.3"/>';
+    });
+    s += '</svg>';
+    return s;
+  }
+  function fpBox(cells, type, cls) { return '<span class="' + (cls || 'fpbox') + '">' + footprintSVG(cells, type) + '</span>'; }
+
+  // straight-vs-diagonal mini proof (Mission 3)
+  function verdictHTML() {
+    var line = '<div class="minigrid line">';
+    for (var i = 0; i < 3; i++) line += '<div class="mg on"></div>';
+    line += '</div>';
+    var diag = '<div class="minigrid diag">';
+    for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) diag += '<div class="mg' + (r === c ? ' bad' : '') + '"></div>';
+    diag += '</div>';
+    return '<div class="verdict">' +
+      '<div class="vcell">' + line + '<span class="vtag ok">straight ✓</span></div>' +
+      '<div class="vcell">' + diag + '<span class="vtag no">diagonal ✗</span></div>' +
+    '</div>';
+  }
+
+  // -------------------- app state --------------------
+  var S = { screen: 'home', mission: 0, phase: 0, data: {}, grownups: false };
+  var simTimer = null;
+
+  function setState(patch) { for (var k in patch) S[k] = patch[k]; render(); }
+
+  // -------------------- DOM builders --------------------
+  function esc(x) { return x; } // we control all strings
+
+  function boardHTML(grid, opts) {
+    opts = opts || {};
+    var heat = opts.heat, showHeat = opts.showHeat, taps = opts.taps;
+    var revealSet = opts.revealSet, highlights = opts.highlights, checker = opts.checker;
+    // hullCells: [{ type, cells:[[r,c]...] }] -> recognisable coloured ships
+    var hull = {};
+    if (opts.hullCells) {
+      opts.hullCells.forEach(function (ship) {
+        var cells = ship.cells, n = cells.length;
+        var sameRow = cells.every(function (p) { return p[0] === cells[0][0]; });
+        var sameCol = cells.every(function (p) { return p[1] === cells[0][1]; });
+        var linear = (sameRow || sameCol) && n > 1;
+        var co = SHIP_COLOR[ship.type] || SHIP_COLOR.cruiser;
+        if (linear) {
+          var sorted = cells.slice().sort(function (a, b) { return sameRow ? (a[1] - b[1]) : (a[0] - b[0]); });
+          var mid = (n - 1) / 2;
+          sorted.forEach(function (p, idx) {
+            var R0 = (idx === 0), R1 = (idx === n - 1), rad;
+            if (sameRow) rad = R0 ? '9px 0 0 9px' : (R1 ? '0 9px 9px 0' : '0');
+            else rad = R0 ? '9px 9px 0 0' : (R1 ? '0 0 9px 9px' : '0');
+            hull[K(p[0], p[1])] = { color: co.deck, rad: rad, glyph: (Math.abs(idx - mid) < 0.5) ? ship.type : null };
+          });
+        } else {
+          // shaped ship: rounded tiles, no glyph (the footprint is its identity)
+          cells.forEach(function (p) { hull[K(p[0], p[1])] = { color: co.deck, rad: '6px', glyph: null }; });
+        }
+      });
+    }
+    var h = '<div class="board">';
+    h += '<div class="corner"></div>';
+    for (var c = 0; c < N; c++) h += '<div class="lbl">' + COLS[c] + '</div>';
+    for (var r = 0; r < N; r++) {
+      h += '<div class="lbl">' + ROWS[r] + '</div>';
+      for (var c2 = 0; c2 < N; c2++) {
+        var st = grid[r][c2];
+        var cls = 'cell ' + st, inner = '', style = '';
+        if (checker && ((r + c2) % 2 === 1)) cls += ' dark';
+        if (highlights && highlights[K(r, c2)]) cls += ' hl';
+        if (showHeat && st === 'unknown' && heat) {
+          var cnt = heat.counts[r][c2];
+          if (cnt === 0) { cls += ' zero'; inner = '<span class="num">0</span>'; }
+          else { var t = heat.max ? cnt / heat.max : 0; style = 'background:' + heatColor(t) + ';'; inner = '<span class="num">' + cnt + '</span>'; }
+        }
+        if (st === 'hit') inner = '💥';
+        else if (st === 'miss') inner = '<span class="dot"></span>';
+        else if (st === 'sunk') inner = '💀';
+        var hu = hull[K(r, c2)];
+        if (hu && st !== 'hit' && st !== 'sunk') {
+          cls += ' hull';
+          style = 'background:' + hu.color + ';border-radius:' + hu.rad + ';';
+          if (hu.glyph) inner = shipGlyph(hu.glyph);
+        }
+        if (revealSet && revealSet[K(r, c2)] && st !== 'hit' && st !== 'sunk' && !hu) { cls += ' ship'; }
+        var tapAttr = (taps && st === 'unknown') ? ' data-cell="' + r + ',' + c2 + '"' : '';
+        h += '<button class="' + cls + '" style="' + style + '"' + tapAttr + '>' + inner + '</button>';
+      }
+    }
+    h += '</div>';
+    return h;
+  }
+
+  function stripHTML(len, opts) {
+    opts = opts || {};
+    var states = opts.states, counts = opts.counts, revealSet = opts.revealSet;
+    var highlights = opts.highlights, taps = opts.taps, badge = opts.badge;
+    var h = '<div class="strip">';
+    for (var i = 0; i < len; i++) {
+      var st = states ? states[i] : 'unknown';
+      var cls = 'scell ' + st, inner = '';
+      if (highlights && highlights[i]) cls += ' hl';
+      if (st === 'hit') inner = '💥';
+      else if (st === 'miss') inner = '<span class="dot"></span>';
+      if (revealSet && revealSet[i] && st !== 'hit') cls += ' ship';
+      if (badge === 'letter') inner = inner || String.fromCharCode(65 + i);
+      var tapAttr = (taps && st === 'unknown') ? ' data-cell="' + i + '"' : '';
+      h += '<div class="scol">';
+      h += '<button class="' + cls + '"' + tapAttr + '>' + inner + '</button>';
+      if (counts) h += '<div class="ways">' + counts[i] + (counts[i] === 1 ? ' way' : ' ways') + '</div>';
+      h += '</div>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  var GUIDE_AVATAR = '🧭';
+  function stage(o) {
+    var top = '<div class="topbar">' +
+      '<button class="home" data-action="home">🏠 Home</button>' +
+      '<div class="title-sm">' + (o.title || '') + '</div>' +
+      '<div class="dots">' + (o.dots || '') + '</div></div>';
+    var guide = o.guide ? ('<div class="guide"><div class="ava">' + GUIDE_AVATAR + '</div><div class="bubble">' + o.guide + '</div></div>') : '';
+    return top +
+      '<div class="stagewrap fade">' +
+        (o.board ? '<div class="boardpanel">' + o.board + '</div>' : '') +
+        guide +
+        (o.controls ? '<div class="controls">' + o.controls + '</div>' : '') +
+      '</div>';
+  }
+  function btn(label, action, cls) { return '<button class="btn ' + (cls || '') + '" data-action="' + action + '">' + label + '</button>'; }
+
+  function dots(active) {
+    var s = '';
+    for (var i = 1; i <= 6; i++) s += '<span class="dot-i' + (i === active ? ' on' : '') + '"></span>';
+    return s;
+  }
+
+  // ============================================================
+  //  HOME
+  // ============================================================
+  var MISSIONS = [
+    { id: 1, icon: '🎯', name: 'Hide & Seek in a Row', sub: 'Counting the ways' },
+    { id: 2, icon: '🌊', name: 'The Whole Sea', sub: 'Why the middle is hot' },
+    { id: 3, icon: '➡️', name: 'Two Hits! Which Way?', sub: 'Straight, not diagonal' },
+    { id: 4, icon: '🧱', name: 'Near the Edge', sub: 'Toward the middle… usually' },
+    { id: 5, icon: '🎲', name: 'Best Guess ≠ Sure Thing', sub: 'The big secret' },
+    { id: 6, icon: '♟️', name: 'The Checkers Trick', sub: 'Search half the sea (bonus)' }
+  ];
+
+  function viewHome() {
+    var cards = MISSIONS.map(function (m) {
+      return '<button class="mcard" data-action="start:' + m.id + '">' +
+        '<div class="mico">' + m.icon + '</div>' +
+        '<div class="mtxt"><div class="mname">' + m.name + '</div><div class="msub">' + m.sub + '</div></div>' +
+        '<div class="go">▶</div></button>';
+    }).join('');
+    var play = '<button class="mcard play" data-action="play">' +
+      '<div class="mico">🕹️</div>' +
+      '<div class="mtxt"><div class="mname">Free Play + AI Brain</div><div class="msub">Hunt a hidden fleet · see the computer think</div></div>' +
+      '<div class="go">▶</div></button>';
+
+    var grown = S.grownups ? (
+      '<div class="grownbox fade">' +
+      '<p><b>For grown-ups.</b> Each mission isolates one idea and lets your child <i>choose first</i>, then reveals the math by literally counting ship placements.</p>' +
+      '<ul>' +
+      '<li><b>1–2 Counting → probability:</b> a square is "hot" because a ship fits through it more ways. The middle has the most room, so it is most likely. (This is the same placement-density heatmap strong Battleship solvers use.)</li>' +
+      '<li><b>3 Which way after two hits:</b> this fleet uses real shapes — a T-shaped submarine and an S-shaped carrier — so the next hit can go straight, perpendicular, or even (rarely) diagonal. The engine ranks them: straight is best, up/down is nearly as good (the sub\'s bump), and the diagonal corners are the long shots (only the carrier\'s S-shape reaches them). The lesson is relative likelihood, not a "never diagonal" rule.</li>' +
+      '<li><b>4 Conditional reasoning:</b> near a wall, the wall side has the least room, so fire toward open water. But a single miss can flip the best move — so always re-count rather than trusting one rule.</li>' +
+      '<li><b>5 Decision vs. outcome:</b> the best guess is the one that wins <i>most often over many games</i>. You can play perfectly and still lose a round — that is luck, not a mistake. The 100-games button makes this visible. This is the deepest idea here and the usual sticking point.</li>' +
+      '<li><b>6 Parity:</b> every ship covers ≥ 2 connected squares, so it always touches one dark checker square — even the bent ships — so you only need to search half the board.</li>' +
+      '<li><b>The fleet:</b> Patrol (2), Cruiser (3), Battleship (4), Destroyer (5), the T-shaped Submarine (4), and the S-shaped Aircraft Carrier (6) — matching the iPad game. Ships rotate (4 ways) but are not mirror-flipped.</li>' +
+      '<li><b>How the heat is computed:</b> for each empty square we count the ways every remaining ship — in every rotation of its real shape — could still fit through it. Once there are hits, we keep only placements that touch a hit and weight each by how many hits it explains (1, 3, 6…), so finishing an established line outscores a perpendicular bump. It is a fast, kid-legible stand-in for the full Bayesian posterior — it ignores ship-to-ship interactions, so treat the numbers as a strong heuristic, not gospel.</li>' +
+      '</ul></div>'
+    ) : '';
+
+    return '<div class="hero fade">' +
+      '<div class="logo">🧭</div>' +
+      '<h1>Probability Captain</h1>' +
+      '<p class="tag">The secret math hiding inside Battleship</p>' +
+      '</div>' +
+      '<div class="cards fade">' + cards + play + '</div>' +
+      '<button class="grownlink" data-action="grownups">' + (S.grownups ? '▲ Hide notes for grown-ups' : 'ℹ️ For grown-ups') + '</button>' +
+      grown;
+  }
+
+  // ============================================================
+  //  MISSION 1 — Hide & Seek in a Row (1-D)
+  // ============================================================
+  var M1 = { len: 6, shipLen: 3 };
+  function m1() {
+    var cov = coverage1D(M1.len, M1.shipLen);
+    var d = dots(1);
+    if (S.phase === 0) {
+      // ----- the hook: a 3-square ship slides through every hiding spot -----
+      var cells = '';
+      for (var i = 0; i < M1.len; i++) {
+        cells += '<div class="m1cell"><span class="m1letter">' + String.fromCharCode(65 + i) + '</span>' +
+          '<span class="m1tally" id="m1t' + i + '">0</span></div>';
+      }
+      var demo = '<div class="m1demo" id="m1demo">' + cells +
+        '<div class="m1sub" id="m1sub">' + shipSilhouette('cruiser', M1.shipLen) + '</div></div>' +
+        '<div class="m1foot" id="m1foot">Watch the ship try every hiding spot…</div>';
+      return stage({
+        title: 'Mission 1 · Hide & Seek', dots: d,
+        board: demo,
+        guide: '⛴️ Here is a <b>3-square ship</b> — three squares in a straight line. Watch every place it could be hiding in this little sea of 6.',
+        controls: '<div id="m1ctrl"></div>'
+      });
+    }
+    if (S.phase === 1) {
+      return stage({
+        title: 'Mission 1 · Hide & Seek', dots: d,
+        board: stripHTML(M1.len, { counts: cov.counts, badge: 'letter', taps: true }),
+        guide: 'The numbers show how many hiding spots cover each square. The <b>middle</b> squares have the biggest numbers. <br>👉 <b>Tap the square where the ship is most likely hiding.</b>',
+        controls: ''
+      });
+    }
+    // phase 2 — they tapped, S.data.pick
+    var pick = S.data.pick;
+    var hi = {}; hi[pick] = true;
+    var cnt = cov.counts[pick];
+    var msg;
+    if (cnt === 3) msg = '🌟 <b>Best guess!</b> That square is covered <b>3 ways</b> — the most of any square. The ship is most likely hiding there.';
+    else if (cnt === 2) msg = 'Good thinking! That square has <b>2 ways</b>. The two middle squares (<b>3 ways</b> each) are even better.';
+    else msg = 'That square is at the <b>end</b> — only <b>1 way</b> to cover it. The middle squares (3 ways) are a smarter first shot.';
+    return stage({
+      title: 'Mission 1 · Hide & Seek', dots: d,
+      board: stripHTML(M1.len, { counts: cov.counts, highlights: hi, badge: 'letter' }),
+      guide: msg + '<br><br>🧠 <b>Big idea:</b> more ways to fit = more likely a ship is there.',
+      controls: btn('Next mission →', 'start:2', 'big') + btn('Watch again', 'start:1', 'ghost')
+    });
+  }
+
+  // ============================================================
+  //  MISSION 2 — The Whole Sea (2-D heatmap)
+  // ============================================================
+  function ringClass(r, c) {
+    var corner = (Math.min(r, N - 1 - r) === 0 && Math.min(c, N - 1 - c) === 0);
+    if (corner) return 'corner';
+    if (Math.min(r, c, N - 1 - r, N - 1 - c) === 0) return 'edge';
+    return 'middle';
+  }
+  function m2() {
+    var d = dots(2);
+    var grid = mkGrid();
+    var heat = computeHeat(grid, FLEET);
+    if (S.phase === 0) {
+      return stage({
+        title: 'Mission 2 · The Whole Sea', dots: d,
+        board: boardHTML(grid, { taps: true }),
+        guide: 'Now the real sea — a whole <b>10×10</b> ocean with one ship hiding. Ships can lie across <b>or</b> up-and-down. <br>👉 If you had ONE shot, where would you fire? <b>Tap a square.</b>',
+        controls: '<div class="hintline">Try a corner, then try the middle — let\'s see which is smarter.</div>'
+      });
+    }
+    // phase 1 reveal
+    var pr = S.data.pr, pc = S.data.pc;
+    var hi = {}; hi[K(pr, pc)] = true;
+    // find hottest + a corner for comparison
+    var best = [0, 0], bestv = -1;
+    for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) if (heat.counts[r][c] > bestv) { bestv = heat.counts[r][c]; best = [r, c]; }
+    hi[K(best[0], best[1])] = true;
+    var cornerVal = heat.counts[0][0];
+    var pickVal = heat.counts[pr][pc];
+    var kind = ringClass(pr, pc);
+    var lead;
+    if (kind === 'middle') lead = '🌟 Great instinct — you picked near the <b>middle!</b>';
+    else if (kind === 'edge') lead = 'You picked an <b>edge</b> square.';
+    else lead = 'You picked a <b>corner</b> — the coldest spot of all!';
+    return stage({
+      title: 'Mission 2 · The Whole Sea', dots: d,
+      board: boardHTML(grid, { showHeat: true, heat: heat, highlights: hi }),
+      guide: lead + ' Your square can hold a ship <b>' + pickVal + '</b> ways.<br><br>' +
+        'Look at the colors and numbers: the <b>middle glows hot</b> (up to <b>' + bestv + ' ways</b>) and the <b>corners are cold</b> (only <b>' + cornerVal + '</b>). ' +
+        'Same idea as the row — the middle has the most room, so ships fit there more ways. 🔥',
+      controls: btn('I get it → next', 'start:3', 'big') + btn('Pick again', 'start:2', 'ghost')
+    });
+  }
+
+  // ============================================================
+  //  MISSION 3 — Two hits! Which way? (shape-aware ranking)
+  // ============================================================
+  function m3Grid() {
+    var g = mkGrid();
+    setCells(g, [[4, 4], [4, 5]], 'hit'); // E5, E6
+    return g;
+  }
+  function m3() {
+    var d = dots(3);
+    var grid = m3Grid();
+    var candidates = [[4, 3], [4, 6], [3, 4], [5, 4], [3, 5], [5, 5], [3, 3], [5, 3], [3, 6], [5, 6]];
+    var hi = {}; candidates.forEach(function (p) { hi[K(p[0], p[1])] = true; });
+    var subFP = fpBox(FLEET[1].cells, 'sub');     // T
+    var carFP = fpBox(FLEET[0].cells, 'carrier');  // S
+    if (S.phase === 0) {
+      return stage({
+        title: 'Mission 3 · Which Way?', dots: d,
+        board: boardHTML(grid, { taps: true, highlights: hi }),
+        guide: 'Boom! 💥💥 <b>Two hits in a row</b> (E5 and E6). A ship is here and keeps going — but your ships have <b>shapes</b>, so it could go straight <i>or</i> turn. <br>👉 <b>Tap the square you\'d fire next.</b>' +
+          '<div class="shapeshow"><div class="shaperow"><span class="lab">Your shaped ships</span>' + subFP + carFP + '</div></div>'
+      });
+    }
+    // reveal
+    var heat = computeHeat(grid, FLEET);
+    var pr = S.data.pr, pc = S.data.pc;
+    var hi2 = {}; hi2[K(pr, pc)] = true;
+    var pickVal = heat.counts[pr][pc] || 0;
+    var isLine = (pr === 4 && (pc === 3 || pc === 6));
+    var isPerp = (Math.abs(pr - 4) === 1) && (pc === 4 || pc === 5);
+    var isDiag = (Math.abs(pr - 4) === 1) && (pc === 3 || pc === 6);
+    function mx(list) { var m = 0; list.forEach(function (p) { var v = heat.counts[p[0]][p[1]]; if (v > m) m = v; }); return m; }
+    var vLine = mx([[4, 3], [4, 6]]), vPerp = mx([[3, 4], [5, 4], [3, 5], [5, 5]]), vDiag = mx([[3, 3], [5, 3], [3, 6], [5, 6]]);
+    var msg;
+    if (isLine) {
+      msg = '🌟 <b>Best choice!</b> Straight ahead scores <b>' + pickVal + '</b> — the highest. Most ships explain two hits in a row by simply continuing in a <b>straight line</b>.';
+    } else if (isPerp) {
+      msg = '👍 Good — that is <b>not</b> a wasted shot! Up/down scores <b>' + pickVal + '</b>, almost as high as straight (<b>' + vLine + '</b>), because the <b>submarine</b> can bump out to the side. Straight is still a little better, so try E4 or E7 first.';
+    } else if (isDiag) {
+      msg = '🤏 The diagonal corners are the <b>long shots</b> — this one scores only <b>' + pickVal + '</b>. They are possible (the <b>carrier\'s S-shape</b> steps diagonally), so not zero — but straight (<b>' + vLine + '</b>) and up/down (<b>' + vPerp + '</b>) are much more likely. Save the diagonal for last.';
+    } else {
+      msg = 'That square scores <b>' + pickVal + '</b>.';
+    }
+    var rank = '<div class="rank">' +
+      '<div class="rankrow"><span class="rk hot"></span><b>Straight</b> (E4/E7): <b>' + vLine + '</b> — best</div>' +
+      '<div class="rankrow"><span class="rk warm"></span><b>Up / down</b>: <b>' + vPerp + '</b> — almost as good</div>' +
+      '<div class="rankrow"><span class="rk cool"></span><b>Diagonal</b>: up to <b>' + vDiag + '</b> — long shot</div>' +
+    '</div>';
+    var shapePanel = '<div class="shapeshow">' +
+      '<div class="shaperow"><span class="lab">🔱 Submarine</span>' + subFP + '<span class="note">bumps up/down</span></div>' +
+      '<div class="shaperow"><span class="lab">🛳️ Carrier</span>' + carFP + '<span class="note">steps to the side</span></div>' +
+      rank + '</div>';
+    return stage({
+      title: 'Mission 3 · Which Way?', dots: d,
+      board: boardHTML(grid, { showHeat: true, heat: heat, highlights: hi2 }),
+      guide: msg + '<br><br>🧠 <b>Big idea:</b> because ships have shapes, the next hit can be straight, up/down, or (rarely) diagonal — but they\'re <b>not</b> equally likely. Go <b>straight first</b>, then up/down, and treat the diagonal as the long shot. The number on each square is its <b>fit score</b>.' + shapePanel,
+      controls: btn('Next mission →', 'start:4', 'big') + btn('Try again', 'start:3', 'ghost')
+    });
+  }
+
+  // ============================================================
+  //  MISSION 4 — Near the edge (conditional)
+  // ============================================================
+  function m4GridA() { var g = mkGrid(); setCells(g, [[2, 1]], 'hit'); return g; } // C2
+  function m4GridB() { var g = mkGrid(); setCells(g, [[2, 1]], 'hit'); setCells(g, [[2, 2]], 'miss'); return g; }
+  function m4() {
+    var d = dots(4);
+    if (S.phase === 0) {
+      var gA = m4GridA();
+      var cand = [[2, 0], [2, 2], [1, 1], [3, 1]];
+      var hi = {}; cand.forEach(function (p) { hi[K(p[0], p[1])] = true; });
+      return stage({
+        title: 'Mission 4 · Near the Edge', dots: d,
+        board: boardHTML(gA, { taps: true, highlights: hi }),
+        guide: 'One hit at <b>C2</b>, right next to the left wall. The ship goes one of four ways. <br>👉 <b>Tap where you\'d look next.</b>'
+      });
+    }
+    if (S.phase === 1) {
+      var gA2 = m4GridA();
+      var heatA = computeHeat(gA2, FLEET);
+      var pr = S.data.pr, pc = S.data.pc, hi2 = {}; hi2[K(pr, pc)] = true;
+      var pickVal = heatA.counts[pr][pc] || 0;
+      var wallVal = heatA.counts[2][0];
+      var isWall = (pr === 2 && pc === 0);
+      var msg = isWall
+        ? 'Hmm — you fired <b>toward the wall</b> (C1). That\'s the <b>coldest</b> way (only <b>' + pickVal + '</b>): a ship runs out of room against the edge. The other three directions all score higher — aim for <b>open water</b>!'
+        : '🌟 Nice — you aimed into <b>open water</b> (scores <b>' + pickVal + '</b>). Compare <b>toward the wall</b> (C1): the coldest at only <b>' + wallVal + '</b>, because a ship runs out of room against the edge.';
+      return stage({
+        title: 'Mission 4 · Near the Edge', dots: d,
+        board: boardHTML(gA2, { showHeat: true, heat: heatA, highlights: hi2 }),
+        guide: msg + '<br><br>So the rule near a wall is: <b>shoot toward open water, not into the wall.</b> 👍 But watch what happens next…',
+        controls: btn('Uh oh — a twist 🌀', 'm4:twist', 'big')
+      });
+    }
+    // phase 2 — twist (middle side is now a miss)
+    var gB = m4GridB();
+    var heatB = computeHeat(gB, FLEET);
+    if (S.phase === 2) {
+      var cand2 = [[2, 0], [1, 1], [3, 1]];
+      var hiB = {}; cand2.forEach(function (p) { hiB[K(p[0], p[1])] = true; });
+      return stage({
+        title: 'Mission 4 · Near the Edge', dots: d,
+        board: boardHTML(gB, { taps: true, highlights: hiB }),
+        guide: 'We fired into open water to the right (C3) and it was <b>water</b> 💧 — a miss! Now the ship <b>can\'t</b> go that way. <br>👉 <b>Tap the best square NOW.</b> (Has the answer changed?)'
+      });
+    }
+    // phase 3 reveal of twist
+    var pr3 = S.data.pr, pc3 = S.data.pc, hi3 = {}; hi3[K(pr3, pc3)] = true;
+    var pickVal3 = heatB.counts[pr3][pc3] || 0;
+    var goodNow = (pr3 === 1 && pc3 === 1) || (pr3 === 3 && pc3 === 1); // up or down
+    var msg3 = goodNow
+      ? '🌟 Yes! Now that the right side is <b>water</b>, <b>up or down</b> is the smartest move (scores <b>' + pickVal3 + '</b>). The best guess <b>changed</b> because the clues changed.'
+      : 'See how the hot squares moved? With the right side blocked, <b>up or down</b> are now best — and the wall side is nearly dead. A new clue overruled the old plan.';
+    return stage({
+      title: 'Mission 4 · Near the Edge', dots: d,
+      board: boardHTML(gB, { showHeat: true, heat: heatB, highlights: hi3 }),
+      guide: msg3 + '<br><br>🧠 <b>Big idea:</b> "aim for open water" is a good rule — but <b>always re-count</b>. One miss can change the best move. Don\'t just follow a rule; read the clues.',
+      controls: btn('Next mission →', 'start:5', 'big') + btn('Replay', 'start:4', 'ghost')
+    });
+  }
+
+  // ============================================================
+  //  MISSION 5 — Best guess is not a sure thing (the big one)
+  // ============================================================
+  var M5 = { len: 6, shipLen: 3, hot: 2, cold: 5, shipPos: [3, 4, 5] };
+  function m5() {
+    var d = dots(5);
+    var cov = coverage1D(M5.len, M5.shipLen);
+    if (S.phase === 0) {
+      return stage({
+        title: 'Mission 5 · The Big Secret', dots: d,
+        board: stripHTML(M5.len, { counts: cov.counts, badge: 'letter', taps: true }),
+        guide: 'Same hiding ship. The two middle squares are the <b>best guess</b> — covered <b>3 of 4</b> ways. <br>👉 <b>Tap the best square to fire.</b>'
+      });
+    }
+    if (S.phase === 1) {
+      // they fired the hot square -> reveal it's a MISS this time
+      var states = new Array(M5.len).fill('unknown');
+      var rev = {}; M5.shipPos.forEach(function (x) { rev[x] = true; });
+      states[M5.hot] = 'miss';
+      var hi = {}; hi[M5.hot] = true;
+      return stage({
+        title: 'Mission 5 · The Big Secret', dots: d,
+        board: stripHTML(M5.len, { states: states, counts: cov.counts, revealSet: rev, highlights: hi }),
+        guide: '💧 <b>Water!</b> This time the ship was hiding in a <b>rare</b> spot (squares D–F). ' +
+          'But wait — did you make a <b>bad</b> choice? <b>No!</b> You made the <b>best</b> choice. ' +
+          'Sometimes the best guess still misses. That\'s <b>luck</b>, not a mistake. 🍀',
+        controls: btn('Prove it — play 100 times! 🎲', 'm5:sim', 'big')
+      });
+    }
+    // phase 2 — 100 games simulation (animated after render)
+    return stage({
+      title: 'Mission 5 · The Big Secret', dots: d,
+      board:
+        '<div class="simwrap">' +
+          '<div class="simrow"><div class="simlabel">🌟 Best square (D, 3 ways)</div>' +
+            '<div class="bartrack"><div class="bar hot" id="hotBar"></div></div>' +
+            '<div class="simcount" id="hotCount">0</div></div>' +
+          '<div class="simrow"><div class="simlabel">🥶 Rare square (F, 1 way)</div>' +
+            '<div class="bartrack"><div class="bar cold" id="coldBar"></div></div>' +
+            '<div class="simcount" id="coldCount">0</div></div>' +
+          '<div class="simfoot" id="simFoot">Playing 100 games…</div>' +
+        '</div>',
+      guide: 'Watch what happens if we play this game <b>100 times</b> and count how often a ship is really there… 👀',
+      controls: btn('Play again 🔁', 'm5:resim', 'ghost') + btn('Finish ⭐', 'start:6', 'big')
+    });
+  }
+  function runM1Demo() {
+    var sub = document.getElementById('m1sub');
+    if (!sub) return;
+    var foot = document.getElementById('m1foot'), ctrl = document.getElementById('m1ctrl');
+    var unit = 100 / M1.len, counts = [0, 0, 0, 0, 0, 0];
+    function place(p) {
+      sub.style.left = (p * unit) + '%';
+      for (var k = 0; k < M1.shipLen; k++) {
+        var idx = p + k; counts[idx]++;
+        var el = document.getElementById('m1t' + idx);
+        if (el) { el.textContent = counts[idx]; el.classList.add('show'); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+      }
+    }
+    place(0);
+    var p = 1;
+    simTimer = setInterval(function () {
+      if (p > (M1.len - M1.shipLen)) {
+        clearInterval(simTimer); simTimer = null;
+        if (foot) foot.innerHTML = 'The sub fits <b>4 ways</b>. See how the <b>middle</b> squares got covered the most?';
+        if (ctrl) ctrl.innerHTML = btn('My turn → tap a square', 'm1:show', 'big');
+        return;
+      }
+      place(p); p++;
+    }, 950);
+  }
+  function runSim() {
+    if (simTimer) { clearInterval(simTimer); simTimer = null; }
+    var trials = 100, hot = 0, cold = 0, positions = coverage1D(M5.len, M5.shipLen).positions;
+    for (var i = 0; i < trials; i++) {
+      var pos = positions[Math.floor(Math.random() * positions.length)];
+      if (pos.indexOf(M5.hot) >= 0) hot++;
+      if (pos.indexOf(M5.cold) >= 0) cold++;
+    }
+    var hc = document.getElementById('hotCount'), cc = document.getElementById('coldCount');
+    var hb = document.getElementById('hotBar'), cb = document.getElementById('coldBar');
+    var foot = document.getElementById('simFoot');
+    if (!hc) return;
+    var step = 0, frames = 40;
+    simTimer = setInterval(function () {
+      step++;
+      var f = step / frames;
+      var hv = Math.round(hot * f), cv = Math.round(cold * f);
+      hc.textContent = hv; cc.textContent = cv;
+      hb.style.width = (hot * f) + '%'; cb.style.width = (cold * f) + '%';
+      if (step >= frames) {
+        clearInterval(simTimer); simTimer = null;
+        hc.textContent = hot; cc.textContent = cold;
+        hb.style.width = hot + '%'; cb.style.width = cold + '%';
+        foot.innerHTML = 'The best square had a ship <b>' + hot + '</b> times. The rare square only <b>' + cold + '</b> times. ' +
+          '🧠 A great guess isn\'t a <i>sure</i> thing — but it <b>wins the most</b> when you play again and again. Make the best move every time!';
+      }
+    }, 26);
+  }
+
+  // ============================================================
+  //  MISSION 6 — Checkers trick (parity)
+  // ============================================================
+  function m6() {
+    var d = dots(6);
+    var grid = mkGrid();
+    // example ships incl the real shaped ones — parity still holds for any shape
+    var exShips = [
+      { type: 'carrier', cells: [[1, 2], [1, 3], [1, 4], [2, 1], [2, 2], [2, 3]] }, // S
+      { type: 'sub',     cells: [[1, 6], [1, 7], [1, 8], [2, 7]] },                 // T
+      { type: 'linear5', cells: [[4, 1], [5, 1], [6, 1], [7, 1], [8, 1]] },         // vertical 5
+      { type: 'cruiser', cells: [[6, 5], [6, 6], [6, 7]] },                         // horizontal 3
+      { type: 'patrol',  cells: [[8, 7], [8, 8]] }                                  // 2
+    ];
+    if (S.phase === 0) {
+      return stage({
+        title: 'Mission 6 · Checkers Trick', dots: d,
+        board: boardHTML(grid, { checker: true, hullCells: exShips }),
+        guide: 'Secret weapon! 🤫 Color the sea like a <b>checkerboard</b>. Every ship covers at least <b>2 connected squares</b>, and any two touching squares always include <b>one dark</b> one. ' +
+          'So <b>every ship must touch a dark square</b> — even the bent submarine and S-shaped carrier. Look, all five do!',
+        controls: btn('So what does that mean? →', 'm6:next', 'big')
+      });
+    }
+    // phase 1 — highlight dark squares as the search set
+    var hi = {};
+    for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) if ((r + c) % 2 === 1) hi[K(r, c)] = true;
+    return stage({
+      title: 'Mission 6 · Checkers Trick', dots: d,
+      board: boardHTML(grid, { checker: true, highlights: hi }),
+      guide: 'Since every ship touches a dark square, you only need to search the <b>50 dark squares</b> to find <b>every</b> ship — you can skip the other half of the ocean! ' +
+        '🧠 Pro move: search only dark squares, and among them pick the <b>hottest</b> one. That\'s how a smart computer hunts.',
+      controls: btn('🏠 Back to Home', 'home', 'big') + btn('🕹️ Try Free Play', 'play', 'ghost')
+    });
+  }
+
+  // ============================================================
+  //  FREE PLAY + AI BRAIN
+  // ============================================================
+  function placeFleet() {
+    var occ = {}, ships = [];
+    FLEET.forEach(function (def) {
+      var oris = def.orient || (def.orient = orientations(def.cells));
+      var placed = false, tries = 0;
+      while (!placed && tries < 1000) {
+        tries++;
+        var base = oris[Math.floor(Math.random() * oris.length)];
+        var ext = shipExtent(base);
+        var ar = Math.floor(Math.random() * (N - ext[0]));
+        var ac = Math.floor(Math.random() * (N - ext[1]));
+        var cells = [], ok = true;
+        for (var k = 0; k < base.length; k++) {
+          var rr = ar + base[k][0], cc = ac + base[k][1];
+          if (occ[K(rr, cc)]) { ok = false; break; }
+          cells.push([rr, cc]);
+        }
+        if (!ok) continue;
+        cells.forEach(function (p) { occ[K(p[0], p[1])] = true; });
+        ships.push({ key: def.key, name: def.name, len: cells.length, icon: def.icon, cells: cells, sunk: false });
+        placed = true;
+      }
+    });
+    return ships;
+  }
+  function newPlay() {
+    S.data = { grid: mkGrid(), fleet: placeFleet(), shots: 0, brain: false, hint: null, won: false, msg: 'Tap any square to fire! 🔥' };
+  }
+  function remainingShips() { return S.data.fleet.filter(function (s) { return !s.sunk; }); }
+  function fireAt(r, c) {
+    if (S.data.won) return;
+    if (S.data.grid[r][c] !== 'unknown') return;
+    S.data.shots++;
+    S.data.hint = null;
+    var hitShip = null;
+    S.data.fleet.forEach(function (s) {
+      if (s.sunk) return;
+      for (var i = 0; i < s.cells.length; i++) if (s.cells[i][0] === r && s.cells[i][1] === c) hitShip = s;
+    });
+    if (!hitShip) { S.data.grid[r][c] = 'miss'; S.data.msg = 'Splash — miss. 💧'; render(); return; }
+    S.data.grid[r][c] = 'hit';
+    var allHit = hitShip.cells.every(function (p) { return S.data.grid[p[0]][p[1]] === 'hit'; });
+    if (allHit) {
+      hitShip.sunk = true;
+      hitShip.cells.forEach(function (p) { S.data.grid[p[0]][p[1]] = 'sunk'; });
+      S.data.msg = '💥 You sank the <b>' + hitShip.name + '</b>! ' + hitShip.icon;
+    } else {
+      S.data.msg = '💥 Direct hit! Keep going along the line.';
+    }
+    if (remainingShips().length === 0) {
+      S.data.won = true;
+      S.data.msg = '🏆 Fleet destroyed in <b>' + S.data.shots + '</b> shots!';
+    }
+    render();
+  }
+  function viewPlay() {
+    if (!S.data || !S.data.fleet) newPlay();
+    var grid = S.data.grid;
+    var heat = S.data.brain ? computeHeat(grid, remainingShips()) : null;
+    var hi = {};
+    if (S.data.hint) hi[S.data.hint] = true;
+    var rev = null;
+    if (S.data.won) { rev = {}; S.data.fleet.forEach(function (s) { s.cells.forEach(function (p) { if (grid[p[0]][p[1]] !== 'hit' && grid[p[0]][p[1]] !== 'sunk') rev[K(p[0], p[1])] = true; }); }); }
+
+    var board = boardHTML(grid, { taps: !S.data.won, showHeat: S.data.brain, heat: heat, highlights: hi, revealSet: rev });
+
+    var fleetList = S.data.fleet.map(function (s) {
+      return '<span class="shipchip ' + (s.sunk ? 'sunk' : '') + '">' + fpBox(s.cells, s.key) + s.name + (s.sunk ? ' ✓' : '') + '</span>';
+    }).join('');
+
+    var controls =
+      '<div class="playbar">' +
+        btn(S.data.brain ? '🧠 Hide AI Brain' : '🧠 Show AI Brain', 'play:brain', S.data.brain ? '' : 'ghost') +
+        btn('💡 AI Hint', 'play:hint', 'ghost') +
+        btn('🤖 AI fires 1', 'play:aifire', 'ghost') +
+        btn('🔄 New Game', 'play:new', 'ghost') +
+      '</div>' +
+      '<div class="statline">Shots fired: <b>' + S.data.shots + '</b>' + (S.data.won ? '' : ' · Use the AI brain to hunt smart — how few shots can you do it in?') + '</div>' +
+      '<div class="fleetline">' + fleetList + '</div>';
+
+    var guide = S.data.msg;
+    if (S.data.brain) guide += '<br><span class="small">The colors show where a ship is most likely to be right now — the computer always fires at the hottest square.</span>';
+
+    return stage({ title: 'Free Play + AI Brain', dots: '', board: board, guide: guide, controls: controls });
+  }
+
+  // ============================================================
+  //  ROUTER + HANDLERS
+  // ============================================================
+  function viewMission() {
+    if (S.mission === 1) return m1();
+    if (S.mission === 2) return m2();
+    if (S.mission === 3) return m3();
+    if (S.mission === 4) return m4();
+    if (S.mission === 5) return m5();
+    if (S.mission === 6) return m6();
+    return viewHome();
+  }
+
+  function render() {
+    if (simTimer) { clearInterval(simTimer); simTimer = null; }
+    var app = document.getElementById('app');
+    var html;
+    if (S.screen === 'home') html = viewHome();
+    else if (S.screen === 'mission') html = viewMission();
+    else if (S.screen === 'play') html = viewPlay();
+    else html = viewHome();
+    app.innerHTML = html;
+    // post-render hooks (animations need the DOM in place)
+    if (S.screen === 'mission' && S.mission === 1 && S.phase === 0) runM1Demo();
+    if (S.screen === 'mission' && S.mission === 5 && S.phase === 2) runSim();
+  }
+
+  function handleCell(val) {
+    if (S.screen === 'mission' && S.mission === 1 && S.phase === 1) {
+      setState({ phase: 2, data: { pick: parseInt(val, 10) } });
+    } else if (S.screen === 'mission' && S.mission === 2 && S.phase === 0) {
+      var p = val.split(',');
+      setState({ phase: 1, data: { pr: +p[0], pc: +p[1] } });
+    } else if (S.screen === 'mission' && S.mission === 3 && S.phase === 0) {
+      var p3 = val.split(',');
+      setState({ phase: 1, data: { pr: +p3[0], pc: +p3[1] } });
+    } else if (S.screen === 'mission' && S.mission === 4 && S.phase === 0) {
+      var p4 = val.split(',');
+      setState({ phase: 1, data: { pr: +p4[0], pc: +p4[1] } });
+    } else if (S.screen === 'mission' && S.mission === 4 && S.phase === 2) {
+      var p4b = val.split(',');
+      setState({ phase: 3, data: { pr: +p4b[0], pc: +p4b[1] } });
+    } else if (S.screen === 'mission' && S.mission === 5 && S.phase === 0) {
+      // any tap fires the "best" square for the demo
+      setState({ phase: 1, data: {} });
+    } else if (S.screen === 'play') {
+      var pp = val.split(',');
+      fireAt(+pp[0], +pp[1]);
+    }
+  }
+
+  function handleAction(a) {
+    if (a === 'home') { S.data = {}; setState({ screen: 'home', mission: 0, phase: 0 }); return; }
+    if (a === 'grownups') { setState({ grownups: !S.grownups }); return; }
+    if (a.indexOf('start:') === 0) {
+      var id = parseInt(a.split(':')[1], 10);
+      S.data = {};
+      setState({ screen: 'mission', mission: id, phase: 0 });
+      return;
+    }
+    if (a === 'play') { newPlay(); setState({ screen: 'play' }); return; }
+    if (a === 'm1:show') { setState({ phase: 1 }); return; }
+    if (a === 'm4:twist') { setState({ phase: 2 }); return; }
+    if (a === 'm5:sim') { setState({ phase: 2 }); return; }
+    if (a === 'm5:resim') { runSim(); return; }
+    if (a === 'm6:next') { setState({ phase: 1 }); return; }
+    if (a === 'play:brain') { S.data.brain = !S.data.brain; render(); return; }
+    if (a === 'play:new') { newPlay(); render(); return; }
+    if (a === 'play:hint') {
+      var heat = computeHeat(S.data.grid, remainingShips());
+      var best = null, bv = -1;
+      for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
+        if (S.data.grid[r][c] === 'unknown' && heat.counts[r][c] > bv) { bv = heat.counts[r][c]; best = K(r, c); }
+      }
+      S.data.hint = best; S.data.brain = true; render(); return;
+    }
+    if (a === 'play:aifire') {
+      var h2 = computeHeat(S.data.grid, remainingShips());
+      var bb = null, bbv = -1, br = 0, bc = 0;
+      for (var r2 = 0; r2 < N; r2++) for (var c2 = 0; c2 < N; c2++) {
+        if (S.data.grid[r2][c2] === 'unknown' && h2.counts[r2][c2] > bbv) { bbv = h2.counts[r2][c2]; br = r2; bc = c2; bb = 1; }
+      }
+      if (bb !== null) fireAt(br, bc);
+      return;
+    }
+  }
+
+  // -------------------- boot --------------------
+  function boot() {
+    var app = document.getElementById('app');
+    app.addEventListener('click', function (e) {
+      var cell = e.target.closest('[data-cell]');
+      if (cell) { handleCell(cell.getAttribute('data-cell')); return; }
+      var b = e.target.closest('[data-action]');
+      if (b) { handleAction(b.getAttribute('data-action')); }
+    });
+    render();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+</body>
+</html>
