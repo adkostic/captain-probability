@@ -478,6 +478,48 @@ body::after {
 .rk.warm { background: linear-gradient(180deg, #ffd23c, #ffb02c); }
 .rk.cool { background: rgba(96,150,220,.5); }
 
+/* ============================================================
+   v4 — game markers, vs-bot layout, parity trainer
+   ============================================================ */
+/* markers matching the real game: grey X miss, red-dot hit */
+.cell .hitdot { width: 58%; height: 58%; border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, #ff9a9a, #e3231f 72%);
+  box-shadow: 0 0 7px rgba(255,50,50,.65), inset 0 -2px 4px rgba(120,0,0,.45); }
+.cell.sunk { background: rgba(110,18,18,.5) !important; }
+.cell .hitdot.sunk { background: radial-gradient(circle at 38% 34%, #d3a08c, #7a1410 72%); box-shadow: none; }
+.cell .xmark { display: inline-block; position: relative; width: 60%; height: 60%; opacity: .6; }
+.cell .xmark::before, .cell .xmark::after { content: ''; position: absolute; left: 50%; top: 8%; width: 13%; height: 84%; background: #b4c4da; border-radius: 3px; }
+.cell .xmark::before { transform: translateX(-50%) rotate(45deg); }
+.cell .xmark::after  { transform: translateX(-50%) rotate(-45deg); }
+
+/* parity emphasis on the hunting board */
+.cell.pmark { box-shadow: inset 0 0 0 2px rgba(120,210,255,.4); }
+.cell.pdim  { opacity: .38; }
+
+/* game layout */
+.gamewrap { display: flex; flex-direction: column; gap: 10px; padding: 10px 12px 34px; max-width: 1100px; margin: 0 auto; }
+.gmsg { text-align: center; font-weight: 700; color: var(--foam); min-height: 22px; font-size: 15px; }
+.boards { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+.bcol { flex: 1 1 320px; max-width: 460px; min-width: 270px; }
+.bcol.solo { max-width: 520px; margin: 0 auto; }
+.blabel { font-weight: 800; color: var(--foam); margin: 2px 0 6px; font-size: 14px; letter-spacing: .3px; }
+.fstrip { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 9px; align-items: center; }
+.fpm-box { display: inline-flex; align-items: center; height: 18px; }
+.fpm { height: 18px; width: auto; }
+.gamebar { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+.optrow { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
+.opt { font-size: 13.5px; color: var(--foam); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.opt input { width: 16px; height: 16px; accent-color: var(--sun); }
+.turnpill { font-size: 12.5px; font-weight: 800; padding: 4px 11px; border-radius: 999px; white-space: nowrap; }
+.turnpill.you { background: rgba(95,208,230,.2); color: #aee9f5; }
+.turnpill.bot { background: rgba(255,154,60,.22); color: #ffcf9a; }
+.turnpill.over { background: rgba(150,255,210,.18); color: #b6ffd6; }
+.coachnote, .paritynote { text-align: center; font-size: 12.5px; color: var(--foam-dim); background: rgba(8,24,56,.42); border-radius: 10px; padding: 7px 11px; }
+
+/* parity trainer */
+.trainerboard .tcell { background: rgba(96,150,220,.12); }
+.trainerboard .tcell.good { background: linear-gradient(180deg, var(--good), var(--teal)); box-shadow: inset 0 0 0 1px rgba(150,255,210,.6); }
+
 </style>
 </head>
 <body>
@@ -736,9 +778,9 @@ body::after {
           if (cnt === 0) { cls += ' zero'; inner = '<span class="num">0</span>'; }
           else { var t = heat.max ? cnt / heat.max : 0; style = 'background:' + heatColor(t) + ';'; inner = '<span class="num">' + cnt + '</span>'; }
         }
-        if (st === 'hit') inner = '💥';
-        else if (st === 'miss') inner = '<span class="dot"></span>';
-        else if (st === 'sunk') inner = '💀';
+        if (st === 'hit') inner = '<span class="hitdot"></span>';
+        else if (st === 'miss') inner = '<span class="xmark"></span>';
+        else if (st === 'sunk') inner = '<span class="hitdot sunk"></span>';
         var hu = hull[K(r, c2)];
         if (hu && st !== 'hit' && st !== 'sunk') {
           cls += ' hull';
@@ -746,7 +788,11 @@ body::after {
           if (hu.glyph) inner = shipGlyph(hu.glyph);
         }
         if (revealSet && revealSet[K(r, c2)] && st !== 'hit' && st !== 'sunk' && !hu) { cls += ' ship'; }
-        var tapAttr = (taps && st === 'unknown') ? ' data-cell="' + r + ',' + c2 + '"' : '';
+        var canTap = taps && st === 'unknown';
+        if (opts.parityHunt && st === 'unknown') {
+          if ((r + c2) % 2 === 0) { cls += ' pmark'; } else { cls += ' pdim'; canTap = false; }
+        }
+        var tapAttr = canTap ? ' data-cell="' + r + ',' + c2 + '"' : '';
         h += '<button class="' + cls + '" style="' + style + '"' + tapAttr + '>' + inner + '</button>';
       }
     }
@@ -763,8 +809,8 @@ body::after {
       var st = states ? states[i] : 'unknown';
       var cls = 'scell ' + st, inner = '';
       if (highlights && highlights[i]) cls += ' hl';
-      if (st === 'hit') inner = '💥';
-      else if (st === 'miss') inner = '<span class="dot"></span>';
+      if (st === 'hit') inner = '<span class="hitdot"></span>';
+      else if (st === 'miss') inner = '<span class="xmark"></span>';
       if (revealSet && revealSet[i] && st !== 'hit') cls += ' ship';
       if (badge === 'letter') inner = inner || String.fromCharCode(65 + i);
       var tapAttr = (taps && st === 'unknown') ? ' data-cell="' + i + '"' : '';
@@ -818,9 +864,13 @@ body::after {
         '<div class="mtxt"><div class="mname">' + m.name + '</div><div class="msub">' + m.sub + '</div></div>' +
         '<div class="go">▶</div></button>';
     }).join('');
-    var play = '<button class="mcard play" data-action="play">' +
-      '<div class="mico">🕹️</div>' +
-      '<div class="mtxt"><div class="mname">Free Play + AI Brain</div><div class="msub">Hunt a hidden fleet · see the computer think</div></div>' +
+    var play = '<button class="mcard play" data-action="game">' +
+      '<div class="mico">⚔️</div>' +
+      '<div class="mtxt"><div class="mname">Play vs the Captain</div><div class="msub">Full game · a bot that hunts by the odds</div></div>' +
+      '<div class="go">▶</div></button>' +
+      '<button class="mcard train" data-action="trainer">' +
+      '<div class="mico">♟️</div>' +
+      '<div class="mtxt"><div class="mname">Parity Trainer</div><div class="msub">Make the checkerboard automatic</div></div>' +
       '<div class="go">▶</div></button>';
 
     var grown = S.grownups ? (
@@ -1196,33 +1246,54 @@ body::after {
     });
   }
 
-  // ============================================================
-  //  FREE PLAY + AI BRAIN
-  // ============================================================
-  function placeFleet() {
-    var occ = {}, ships = [];
-    FLEET.forEach(function (def) {
+  // ---- realistic placement: ships never touch (incl. diagonally), spread out ----
+  function touchesOcc(occ, cells) {
+    for (var i = 0; i < cells.length; i++) {
+      var r = cells[i][0], c = cells[i][1];
+      for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) {
+        if (occ[K(r + dr, c + dc)]) return true;
+      }
+    }
+    return false;
+  }
+  function tryPlaceFleet(spread, edgeBias) {
+    var occ = {}, ships = [], f;
+    for (f = 0; f < FLEET.length; f++) {
+      var def = FLEET[f];
       var oris = def.orient || (def.orient = orientations(def.cells));
       var placed = false, tries = 0;
-      while (!placed && tries < 1000) {
+      while (!placed && tries < 500) {
         tries++;
-        var base = oris[Math.floor(Math.random() * oris.length)];
+        var base = oris[(Math.random() * oris.length) | 0];
         var ext = shipExtent(base);
-        var ar = Math.floor(Math.random() * (N - ext[0]));
-        var ac = Math.floor(Math.random() * (N - ext[1]));
-        var cells = [], ok = true;
-        for (var k = 0; k < base.length; k++) {
+        var ar = (Math.random() * (N - ext[0])) | 0;
+        var ac = (Math.random() * (N - ext[1])) | 0;
+        if (edgeBias && Math.random() < 0.45) {
+          if (Math.random() < 0.5) ar = (Math.random() < 0.5) ? 0 : (N - 1 - ext[0]);
+          else ac = (Math.random() < 0.5) ? 0 : (N - 1 - ext[1]);
+        }
+        var cells = [], overlap = false, k;
+        for (k = 0; k < base.length; k++) {
           var rr = ar + base[k][0], cc = ac + base[k][1];
-          if (occ[K(rr, cc)]) { ok = false; break; }
+          if (occ[K(rr, cc)]) { overlap = true; break; }
           cells.push([rr, cc]);
         }
-        if (!ok) continue;
+        if (overlap) continue;
+        if (spread && touchesOcc(occ, cells)) continue;
         cells.forEach(function (p) { occ[K(p[0], p[1])] = true; });
         ships.push({ key: def.key, name: def.name, len: cells.length, icon: def.icon, cells: cells, sunk: false });
         placed = true;
       }
-    });
+      if (!placed) return null;
+    }
     return ships;
+  }
+  function placeFleet(opts) {
+    opts = opts || {};
+    var spread = opts.spread !== false, attempt, r;
+    for (attempt = 0; attempt < 60; attempt++) { r = tryPlaceFleet(spread, !!opts.edgeBias); if (r) return r; }
+    for (attempt = 0; attempt < 60; attempt++) { r = tryPlaceFleet(false, false); if (r) return r; } // fallback
+    return tryPlaceFleet(false, false) || [];
   }
   function newPlay() {
     S.data = { grid: mkGrid(), fleet: placeFleet(), shots: 0, brain: false, hint: null, won: false, msg: 'Tap any square to fire! 🔥' };
@@ -1286,6 +1357,219 @@ body::after {
   }
 
   // ============================================================
+  //  PLAY vs THE CAPTAIN  (full turn-based game, probability bot)
+  // ============================================================
+  function lbl(r, c) { return ROWS[r] + COLS[c]; }
+  function isHunting(grid) { for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) if (grid[r][c] === 'hit') return false; return true; }
+  function allSunk(fleet) { return fleet.every(function (s) { return s.sunk; }); }
+
+  function resolveShot(grid, fleet, r, c, who) {
+    var ship = null, i, j;
+    for (i = 0; i < fleet.length; i++) {
+      if (fleet[i].sunk) continue;
+      for (j = 0; j < fleet[i].cells.length; j++) if (fleet[i].cells[j][0] === r && fleet[i].cells[j][1] === c) ship = fleet[i];
+    }
+    if (!ship) { grid[r][c] = 'miss'; return who === 'you' ? '💧 Miss at ' + lbl(r, c) + '.' : '🌊 Enemy fired at ' + lbl(r, c) + ' — miss.'; }
+    grid[r][c] = 'hit';
+    var done = ship.cells.every(function (p) { return grid[p[0]][p[1]] === 'hit' || grid[p[0]][p[1]] === 'sunk'; });
+    if (done) {
+      ship.sunk = true; ship.cells.forEach(function (p) { grid[p[0]][p[1]] = 'sunk'; });
+      return who === 'you' ? '💥 You SANK the enemy ' + ship.name + '!' : '⚠️ Enemy sank your ' + ship.name + '!';
+    }
+    return who === 'you' ? '💥 Hit at ' + lbl(r, c) + '!' : '🎯 Enemy hit your ' + ship.name + ' at ' + lbl(r, c) + '.';
+  }
+
+  // density-max shot; during hunt restrict to parity (the optimal simple strategy)
+  function bestShot(grid, ships, parityOnly) {
+    var heat = computeHeat(grid, ships), best = [], bv = -1, r, c, v;
+    for (r = 0; r < N; r++) for (c = 0; c < N; c++) {
+      if (grid[r][c] !== 'unknown') continue;
+      if (parityOnly && ((r + c) % 2 !== 0)) continue;
+      v = heat.counts[r][c];
+      if (v > bv) { bv = v; best = [[r, c]]; } else if (v === bv) best.push([r, c]);
+    }
+    if (best.length === 0) { for (r = 0; r < N; r++) for (c = 0; c < N; c++) if (grid[r][c] === 'unknown') best.push([r, c]); }
+    return { cell: best.length ? best[(Math.random() * best.length) | 0] : null, heat: heat };
+  }
+
+  function newGame() {
+    S.game = {
+      phase: 'place', turn: 'you', over: false, winner: null,
+      coach: false, parity: false,
+      you:   { grid: mkGrid(), fleet: placeFleet({ spread: true }) },
+      enemy: { grid: mkGrid(), fleet: placeFleet({ spread: true, edgeBias: true }) },
+      msg: 'Your fleet is placed and spread out, Captain. Toggle options, then <b>Start Battle</b>.'
+    };
+  }
+  function enemyRemaining() { return S.game.enemy.fleet.filter(function (s) { return !s.sunk; }); }
+  function youRemaining() { return S.game.you.fleet.filter(function (s) { return !s.sunk; }); }
+
+  function playerFire(r, c) {
+    var g = S.game;
+    if (!g || g.over || g.phase !== 'play' || g.turn !== 'you') return;
+    if (g.enemy.grid[r][c] !== 'unknown') return;
+    if (g.parity && isHunting(g.enemy.grid) && ((r + c) % 2 !== 0)) {
+      g.msg = '♟️ <b>Parity mode:</b> while searching, fire only on the <b>marked</b> squares.'; render(); return;
+    }
+    g.msg = resolveShot(g.enemy.grid, g.enemy.fleet, r, c, 'you');
+    if (allSunk(g.enemy.fleet)) { g.over = true; g.winner = 'you'; g.msg = '🏆 <b>Victory!</b> You destroyed the enemy fleet. ' + g.msg; render(); return; }
+    g.turn = 'bot'; render();
+    setTimeout(botTurn, 700);
+  }
+  function botTurn() {
+    var g = S.game;
+    if (!g || S.screen !== 'game' || g.over || g.turn !== 'bot') return;
+    var pick = bestShot(g.you.grid, youRemaining(), isHunting(g.you.grid)).cell;
+    if (!pick) { g.turn = 'you'; render(); return; }
+    g.msg = resolveShot(g.you.grid, g.you.fleet, pick[0], pick[1], 'bot');
+    if (allSunk(g.you.fleet)) { g.over = true; g.winner = 'bot'; g.msg = '💀 <b>Your fleet is lost.</b> ' + g.msg; g.turn = 'you'; render(); return; }
+    g.turn = 'you'; render();
+  }
+
+  function viewGame() {
+    if (!S.game) newGame();
+    var g = S.game;
+    var top = '<div class="topbar">' +
+      '<button class="home" data-action="home">🏠 Home</button>' +
+      '<div class="title-sm">Play vs the Captain</div>' +
+      '<div class="turnpill ' + (g.over ? 'over' : (g.turn === 'you' ? 'you' : 'bot')) + '">' +
+        (g.over ? (g.winner === 'you' ? 'You win' : 'You lose') : (g.phase === 'place' ? 'Set up' : (g.turn === 'you' ? 'Your move' : 'Enemy…'))) +
+      '</div></div>';
+
+    // ----- placement phase -----
+    if (g.phase === 'place') {
+      var yb = boardHTML(g.you.grid, { hullCells: g.you.fleet.map(function (s) { return { type: s.key, cells: s.cells }; }) });
+      return top +
+        '<div class="gamewrap fade">' +
+        '<div class="gmsg">' + g.msg + '</div>' +
+        '<div class="bcol solo"><div class="blabel">🛡️ Your fleet</div>' + yb + fleetStrip(g.you.fleet, '#5fd0e6') + '</div>' +
+        '<div class="gamebar">' +
+          btn('🔀 Shuffle my fleet', 'game:shuffle', 'ghost') +
+          btn('⚔️ Start Battle', 'game:start', 'big') +
+        '</div>' +
+        '<div class="optrow">' +
+          '<label class="opt"><input type="checkbox" data-action="game:coach"' + (g.coach ? ' checked' : '') + '> 🧠 Coach (show odds + best shot)</label>' +
+          '<label class="opt"><input type="checkbox" data-action="game:parity"' + (g.parity ? ' checked' : '') + '> ♟️ Parity mode (search one color only)</label>' +
+        '</div></div>';
+    }
+
+    // ----- battle / over -----
+    var hunting = isHunting(g.enemy.grid);
+    var coachShot = g.coach ? bestShot(g.enemy.grid, enemyRemaining(), g.parity && hunting) : null;
+    var hi = {};
+    if (coachShot && coachShot.cell && !g.over && g.turn === 'you') hi[K(coachShot.cell[0], coachShot.cell[1])] = true;
+    var enemyRev = g.over ? g.enemy.fleet.map(function (s) { return { type: s.key, cells: s.cells }; }) : g.enemy.fleet.filter(function (s) { return s.sunk; }).map(function (s) { return { type: s.key, cells: s.cells }; });
+
+    var enemyBoard = boardHTML(g.enemy.grid, {
+      taps: !g.over && g.turn === 'you',
+      showHeat: g.coach && !g.over, heat: coachShot ? coachShot.heat : null,
+      highlights: hi,
+      hullCells: enemyRev,
+      parityHunt: g.parity && hunting && !g.over && g.turn === 'you'
+    });
+    var yourBoard = boardHTML(g.you.grid, { hullCells: g.you.fleet.map(function (s) { return { type: s.key, cells: s.cells }; }) });
+
+    var coachNote = '';
+    if (g.coach && !g.over && coachShot && coachShot.cell) {
+      coachNote = '<div class="coachnote">🧠 Best shot now: <b>' + lbl(coachShot.cell[0], coachShot.cell[1]) + '</b>' +
+        (g.parity && hunting ? ' · searching parity squares' : '') + '. Hotter = more likely.</div>';
+    }
+    var parityNote = (g.parity && hunting && !g.over) ? '<div class="paritynote">♟️ Parity: fire only the <b>brighter</b> squares while searching. Rule — odd letters (A C E G I) → odd numbers; even letters → even numbers.</div>' : '';
+
+    var overBar = g.over
+      ? '<div class="gamebar">' + btn('🔄 Play again', 'game:again', 'big') + btn('🏠 Home', 'home', 'ghost') + '</div>'
+      : '<div class="gamebar">' +
+          '<label class="opt"><input type="checkbox" data-action="game:coach"' + (g.coach ? ' checked' : '') + '> 🧠 Coach</label>' +
+          '<label class="opt"><input type="checkbox" data-action="game:parity"' + (g.parity ? ' checked' : '') + '> ♟️ Parity</label>' +
+          btn('🔄 New game', 'game:again', 'ghost') +
+        '</div>';
+
+    return top +
+      '<div class="gamewrap fade">' +
+      '<div class="gmsg">' + g.msg + '</div>' +
+      coachNote + parityNote +
+      '<div class="boards">' +
+        '<div class="bcol"><div class="blabel">🎯 Enemy waters</div>' + enemyBoard + fleetStrip(g.enemy.fleet, '#ff9a3c') + '</div>' +
+        '<div class="bcol"><div class="blabel">🛡️ Your fleet</div>' + yourBoard + fleetStrip(g.you.fleet, '#5fd0e6') + '</div>' +
+      '</div>' +
+      overBar +
+      '</div>';
+  }
+
+  // compact fleet summary: filled squares = afloat, outline = sunk
+  function fpMini(cells, filled, hue) {
+    var U = 15, nc = normCells(cells), ext = shipExtent(nc), W = (ext[1] + 1) * U, H = (ext[0] + 1) * U;
+    var s = '<svg class="fpm" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">';
+    nc.forEach(function (p) {
+      var x = p[1] * U + 1.5, y = p[0] * U + 1.5, w = U - 3;
+      if (filled) s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + w + '" rx="3" fill="' + hue + '"/>';
+      else s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + w + '" rx="3" fill="none" stroke="' + hue + '" stroke-opacity="0.45" stroke-width="1.6"/>';
+    });
+    s += '</svg>'; return s;
+  }
+  function fleetStrip(fleet, hue) {
+    return '<div class="fstrip">' + fleet.map(function (s) {
+      return '<span class="fpm-box' + (s.sunk ? ' gone' : '') + '">' + fpMini(s.cells, !s.sunk, hue) + '</span>';
+    }).join('') + '</div>';
+  }
+
+  // ============================================================
+  //  PARITY TRAINER — make the checkerboard intuitive & fast
+  // ============================================================
+  function newTrainer() {
+    S.trainer = { picked: {}, wrong: 0, start: 0, doneAt: 0, started: false };
+  }
+  function parityTotal() { var n = 0; for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) if ((r + c) % 2 === 0) n++; return n; }
+  function viewTrainer() {
+    if (!S.trainer) newTrainer();
+    var t = S.trainer;
+    var total = parityTotal(), got = Object.keys(t.picked).length;
+    var top = '<div class="topbar"><button class="home" data-action="home">🏠 Home</button>' +
+      '<div class="title-sm">Parity Trainer</div><div class="dots"></div></div>';
+    // build a tappable board: parity cells are the target; show picked state
+    var h = '<div class="board trainerboard">';
+    h += '<div class="corner"></div>';
+    for (var c = 0; c < N; c++) h += '<div class="lbl">' + COLS[c] + '</div>';
+    for (var r = 0; r < N; r++) {
+      h += '<div class="lbl">' + ROWS[r] + '</div>';
+      for (var c2 = 0; c2 < N; c2++) {
+        var key = r + ',' + c2, cls = 'cell tcell';
+        var isP = (r + c2) % 2 === 0;
+        if (t.picked[key]) cls += ' good';
+        var tap = (t.started && !t.doneAt) ? ' data-cell="' + r + ',' + c2 + '"' : '';
+        h += '<button class="' + cls + '"' + tap + '></button>';
+      }
+    }
+    h += '</div>';
+    var timeTxt = '';
+    if (t.doneAt) timeTxt = '✅ All ' + total + ' search squares in <b>' + ((t.doneAt - t.start) / 1000).toFixed(1) + 's</b> with <b>' + t.wrong + '</b> misfires. Beat it next time!';
+    else if (t.started) timeTxt = 'Found <b>' + got + ' / ' + total + '</b> · misfires: <b>' + t.wrong + '</b>';
+    var guide = t.started
+      ? '👉 Tap <b>every search square</b> as fast as you can. (One color of the checkerboard.)'
+      : 'The whole checkerboard from one rule: <b>odd letters (A C E G I) → odd numbers</b>, and <b>even letters (B D F H J) → even numbers</b>. Those are the squares you search — half the sea, but you still hit every ship.<br>Ready? Tap Start and paint them all.';
+    var controls = t.started
+      ? (t.doneAt ? btn('🔄 Go again', 'trainer:reset', 'big') + btn('🏠 Home', 'home', 'ghost')
+                  : btn('🔄 Restart', 'trainer:reset', 'ghost'))
+      : btn('▶ Start the drill', 'trainer:start', 'big');
+    return top + '<div class="stagewrap fade">' +
+      '<div class="boardpanel">' + h + '</div>' +
+      '<div class="guide"><div class="ava">' + GUIDE_AVATAR + '</div><div class="bubble">' + guide + (timeTxt ? '<br><br>' + timeTxt : '') + '</div></div>' +
+      '<div class="controls">' + controls + '</div>' +
+      '</div>';
+  }
+  function trainerTap(r, c) {
+    var t = S.trainer; if (!t.started || t.doneAt) return;
+    var key = r + ',' + c;
+    if ((r + c) % 2 === 0) {
+      if (!t.picked[key]) t.picked[key] = true;
+      if (Object.keys(t.picked).length >= parityTotal()) t.doneAt = Date.now();
+    } else {
+      t.wrong++;
+    }
+    render();
+  }
+
+  // ============================================================
   //  ROUTER + HANDLERS
   // ============================================================
   function viewMission() {
@@ -1305,6 +1589,8 @@ body::after {
     if (S.screen === 'home') html = viewHome();
     else if (S.screen === 'mission') html = viewMission();
     else if (S.screen === 'play') html = viewPlay();
+    else if (S.screen === 'game') html = viewGame();
+    else if (S.screen === 'trainer') html = viewTrainer();
     else html = viewHome();
     app.innerHTML = html;
     // post-render hooks (animations need the DOM in place)
@@ -1330,6 +1616,12 @@ body::after {
     } else if (S.screen === 'mission' && S.mission === 5 && S.phase === 0) {
       // any tap fires the "best" square for the demo
       setState({ phase: 1, data: {} });
+    } else if (S.screen === 'game') {
+      var pg = val.split(',');
+      playerFire(+pg[0], +pg[1]);
+    } else if (S.screen === 'trainer') {
+      var pt = val.split(',');
+      trainerTap(+pt[0], +pt[1]);
     } else if (S.screen === 'play') {
       var pp = val.split(',');
       fireAt(+pp[0], +pp[1]);
@@ -1346,6 +1638,15 @@ body::after {
       return;
     }
     if (a === 'play') { newPlay(); setState({ screen: 'play' }); return; }
+    if (a === 'game') { newGame(); setState({ screen: 'game' }); return; }
+    if (a === 'trainer') { newTrainer(); setState({ screen: 'trainer' }); return; }
+    if (a === 'game:shuffle') { S.game.you.fleet = placeFleet({ spread: true }); S.game.msg = 'Re-spread your fleet. Ready when you are.'; render(); return; }
+    if (a === 'game:start') { S.game.phase = 'play'; S.game.msg = (S.game.parity ? 'Battle on! Searching parity squares. ' : 'Battle on! ') + 'Tap an enemy square to fire. 🔥'; render(); return; }
+    if (a === 'game:again') { newGame(); render(); return; }
+    if (a === 'game:coach') { S.game.coach = !S.game.coach; render(); return; }
+    if (a === 'game:parity') { S.game.parity = !S.game.parity; render(); return; }
+    if (a === 'trainer:start') { S.trainer.started = true; S.trainer.start = Date.now(); S.trainer.picked = {}; S.trainer.wrong = 0; S.trainer.doneAt = 0; render(); return; }
+    if (a === 'trainer:reset') { newTrainer(); render(); return; }
     if (a === 'm1:show') { setState({ phase: 1 }); return; }
     if (a === 'm4:twist') { setState({ phase: 2 }); return; }
     if (a === 'm5:sim') { setState({ phase: 2 }); return; }
