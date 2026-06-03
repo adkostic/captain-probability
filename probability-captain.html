@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Prob Captain">
 <meta name="theme-color" content="#061633">
 <title>Probability Captain</title>
+
 <style>
 /* ============================================================
    PROBABILITY CAPTAIN — nautical "sonar command deck" theme
@@ -516,10 +517,63 @@ body::after {
 .trainerboard .tcell { background: rgba(96,150,220,.12); }
 .trainerboard .tcell.good { background: linear-gradient(180deg, var(--good), var(--teal)); box-shadow: inset 0 0 0 1px rgba(150,255,210,.6); }
 
+/* ============================================================
+   v5 — fix board overlap, reverse columns, prominent fleet status
+   ============================================================ */
+/* boards inside the game fill their column (override the fixed 86vw/520px) */
+.gamewrap .board { width: 100%; }
+.placewrap { max-width: 440px; margin: 0 auto; }
+
+.gameboards {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr); /* your map smaller, enemy larger */
+  gap: 24px; align-items: start;
+  max-width: 1080px; margin: 6px auto 0;
+}
+.col-you, .col-enemy { min-width: 0; }            /* allow shrink, prevents overflow */
+.col-you .board { max-width: 360px; margin: 0 auto; }  /* player's map clearly smaller */
+@media (max-width: 820px) {
+  .gameboards { grid-template-columns: 1fr; gap: 16px; }
+  .col-you .board { max-width: 460px; }
+}
+
+/* prominent, clean fleet status (like the game's blocks) */
+.statusbox { background: rgba(8,24,56,.42); border: 1px solid var(--glass-bd);
+  border-radius: 14px; padding: 11px 15px; margin: 6px auto 2px; max-width: 1080px; }
+.statusbox.enemy { box-shadow: inset 0 0 0 1px rgba(255,154,60,.20); }
+.statusbox.mini { padding: 8px 11px; margin-top: 12px; }
+.sblabel { font-size: 12px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase;
+  color: var(--foam); margin-bottom: 8px; opacity: .85; }
+.statusbox.enemy .sblabel { color: #ffcf9a; }
+.statusbox.you .sblabel { color: #aee9f5; }
+
+/* uniform, well-spaced fleet squares (override v4 sizing) */
+.fstrip { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin: 0; }
+.statusbox.mini .fstrip { gap: 11px; }
+.fpm-box { display: inline-flex; align-items: center; height: auto; }
+.fpm { display: block; height: auto; width: auto; }
+.fpm-box.gone { opacity: .9; }
+
+/* the two-board game needs the full screen width (missions/home stay narrow) */
+#app.wide { max-width: 1240px; }
+
+/* fix: auto-margins on a flex item collapse it — stretch + center instead */
+.gamewrap { align-items: center; }
+.gameboards { width: 100%; max-width: 1080px; margin: 6px 0 0; }
+.statusbox { width: 100%; max-width: 1080px; margin: 6px 0 2px; }
+.statusbox.mini { width: 100%; max-width: none; }
+
+/* enemy fleet status: hug content + center (no empty full-width bar) */
+.statusbox.enemy { width: auto; max-width: 100%; padding: 12px 22px; }
+.statusbox.enemy .sblabel { text-align: center; }
+.statusbox.enemy .fstrip { justify-content: center; }
+.statusbox.you.mini .fstrip { justify-content: flex-start; }
+
 </style>
 </head>
 <body>
 <div id="app"></div>
+
 <script>
 /* ============================================================
    PROBABILITY CAPTAIN — a Battleship probability adventure
@@ -1437,7 +1491,7 @@ body::after {
       return top +
         '<div class="gamewrap fade">' +
         '<div class="gmsg">' + g.msg + '</div>' +
-        '<div class="bcol solo"><div class="blabel">🛡️ Your fleet</div>' + yb + fleetStrip(g.you.fleet, '#5fd0e6') + '</div>' +
+        '<div class="placewrap"><div class="blabel">🛡️ Your fleet</div>' + yb + '<div class="statusbox you mini"><div class="sblabel">Your ships</div>' + fleetStrip(g.you.fleet, 'you') + '</div></div>' +
         '<div class="gamebar">' +
           btn('🔀 Shuffle my fleet', 'game:shuffle', 'ghost') +
           btn('⚔️ Start Battle', 'game:start', 'big') +
@@ -1483,28 +1537,33 @@ body::after {
       '<div class="gamewrap fade">' +
       '<div class="gmsg">' + g.msg + '</div>' +
       coachNote + parityNote +
-      '<div class="boards">' +
-        '<div class="bcol"><div class="blabel">🎯 Enemy waters</div>' + enemyBoard + fleetStrip(g.enemy.fleet, '#ff9a3c') + '</div>' +
-        '<div class="bcol"><div class="blabel">🛡️ Your fleet</div>' + yourBoard + fleetStrip(g.you.fleet, '#5fd0e6') + '</div>' +
+      '<div class="statusbox enemy"><div class="sblabel">🚩 Enemy fleet still afloat</div>' + fleetStrip(g.enemy.fleet, 'enemy') + '</div>' +
+      '<div class="gameboards">' +
+        '<div class="col-you"><div class="blabel">🛡️ Your fleet</div>' + yourBoard + '<div class="statusbox you mini"><div class="sblabel">Your ships</div>' + fleetStrip(g.you.fleet, 'you') + '</div></div>' +
+        '<div class="col-enemy"><div class="blabel">🎯 Enemy waters · tap to fire</div>' + enemyBoard + '</div>' +
       '</div>' +
       overBar +
       '</div>';
   }
 
-  // compact fleet summary: filled squares = afloat, outline = sunk
-  function fpMini(cells, filled, hue) {
-    var U = 15, nc = normCells(cells), ext = shipExtent(nc), W = (ext[1] + 1) * U, H = (ext[0] + 1) * U;
-    var s = '<svg class="fpm" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">';
+  // compact fleet summary: filled squares = afloat, outline = sunk; UNIFORM cell size
+  function fpMini(cells, filled, hue, U) {
+    U = U || 18;
+    var nc = normCells(cells), ext = shipExtent(nc), W = (ext[1] + 1) * U, H = (ext[0] + 1) * U;
+    var s = '<svg class="fpm" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg">';
     nc.forEach(function (p) {
       var x = p[1] * U + 1.5, y = p[0] * U + 1.5, w = U - 3;
       if (filled) s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + w + '" rx="3" fill="' + hue + '"/>';
-      else s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + w + '" rx="3" fill="none" stroke="' + hue + '" stroke-opacity="0.45" stroke-width="1.6"/>';
+      else s += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + w + '" rx="3" fill="none" stroke="' + hue + '" stroke-opacity="0.5" stroke-width="1.6"/>';
     });
     s += '</svg>'; return s;
   }
-  function fleetStrip(fleet, hue) {
+  function shipShape(key) { for (var i = 0; i < FLEET.length; i++) if (FLEET[i].key === key) return FLEET[i].cells; return null; }
+  function fleetStrip(fleet, side) {
+    var hue = side === 'enemy' ? '#ff9a3c' : '#5fd0e6';
+    var U = side === 'enemy' ? 22 : 15;
     return '<div class="fstrip">' + fleet.map(function (s) {
-      return '<span class="fpm-box' + (s.sunk ? ' gone' : '') + '">' + fpMini(s.cells, !s.sunk, hue) + '</span>';
+      return '<span class="fpm-box' + (s.sunk ? ' gone' : '') + '">' + fpMini(shipShape(s.key) || s.cells, !s.sunk, hue, U) + '</span>';
     }).join('') + '</div>';
   }
 
@@ -1588,6 +1647,7 @@ body::after {
     else if (S.screen === 'trainer') html = viewTrainer();
     else html = viewHome();
     app.innerHTML = html;
+    app.classList.toggle('wide', S.screen === 'game');
     // post-render hooks (animations need the DOM in place)
     if (S.screen === 'mission' && S.mission === 1 && S.phase === 0) runM1Demo();
     if (S.screen === 'mission' && S.mission === 5 && S.phase === 2) runSim();
